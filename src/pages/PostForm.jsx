@@ -60,7 +60,7 @@ function PostForm() {
             alert("位置情報を設定してください。");
             return;
         }
-
+//
         setIsLoading(true);
 
         try {
