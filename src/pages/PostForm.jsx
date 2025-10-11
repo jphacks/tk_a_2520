@@ -117,7 +117,7 @@ function PostForm() {
                             style={{ display: 'none' }}
                             onChange={handleImageChange}
                         />
-                        <label htmlFor="imageUpload" className="btn image-btn">＋画像</label>
+                        {/*<label htmlFor="imageUpload" className="btn image-btn">＋画像</label>*/}
                     </div>
                     {imagePreview && (
                         <div id="imagePreviewContainer">
