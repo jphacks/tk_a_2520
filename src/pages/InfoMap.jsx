@@ -1,123 +1,132 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // ページ遷移のためにインポート
-import './InfoMap.css'; // CSSファイルをインポート
-import MapContainer from '../components/MapContainer'; // パスは適宜調整してください
+import './InfoMap.css';
+import MapContainer from '../components/MapContainer';
+// ★ 1. Firestoreからデータを取得するために必要な関数をインポートします
+import { db } from '../firebase/firebase'; // firebase設定ファイルのパスは適宜調整してください
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
-// 表示するデータはコンポーネントの外に定義しておくと見やすい
-const infoData = {
-    danger: {
-        title: '危険情報',
-        content: '現在の危険情報を表示します。道路封鎖、自然災害、緊急事態などの情報をご確認いただけます。'
-    },
-    scenery: {
-        title: '風景情報',
-        content: '美しい風景スポットや季節の見どころをご紹介します。桜の開花状況、紅葉の見頃などをお知らせします。'
-    },
-    traffic: {
-        title: '交通情報',
-        content: '道路状況、電車の運行情報、渋滞状況などの最新の交通情報をお届けします。'
-    },
-    event: {
-        title: 'イベント情報',
-        content: '地域のお祭り、コンサート、展示会などのイベント情報をご案内します。'
-    }
-};
+// ★ 2. ボタンの種類を配列で定義します。投稿フォームのタグと名前を一致させましょう。
+const tagButtons = [
+    { type: '危険情報', icon: '⚠️' },
+    { type: '風景',     icon: '🌸' },
+    { type: 'グルメ',   icon: '🍴' }, // アイコンをより適切なものに変更しました
+    { type: '気づき',   icon: '✨' }, // アイコンをより適切なものに変更しました
+    { type: '便利情報', icon: '💡' }
+];
 
 function InfoMap() {
-    // どの情報がアクティブかを管理するstate ('danger', 'scenery', nullなど)
-    const [activeInfoType, setActiveInfoType] = useState(null);
+    const [activeTag, setActiveTag] = useState(null);
+    const [posts, setPosts] = useState([]); // ★ 3. 取得した投稿データを保持するためのstate
+    const [isLoading, setIsLoading] = useState(false); // ★ データ取得中のローディング状態を管理
 
-    // DOM要素を参照するためのuseRef
-    const navRef = useRef(null);
+    const topNavRef = useRef(null);
     const panelRef = useRef(null);
 
-    // useNavigateフックを呼び出して、ページ遷移用の関数を取得
-    const navigate = useNavigate();
-
-    // ボタンがクリックされたときの処理
-    const handleShowInfo = (type) => {
-        // すでにアクティブなボタンを再度クリックしたら非表示にする
-        setActiveInfoType(prevType => prevType === type ? null : type);
+    // ★ 4. タグボタンがクリックされたときの処理
+    const handleTagClick = (tag) => {
+        // 同じボタンをクリックしたら選択解除（トグル機能）
+        setActiveTag(prevTag => prevTag === tag ? null : tag);
     };
 
-    // 投稿ボタンがクリックされたときの処理
-    const handleSubmitInfo = () => {
-        // 投稿フォームのパス'/'に遷移する
-        navigate('/');
-    };
-
-    // activeInfoTypeが変更されたときに副作用（タイマー）を実行する
+    // ★ 5. activeTagが変更されたら、Firestoreからデータを取得するuseEffect
     useEffect(() => {
-        // activeInfoTypeに何かタイプが設定された場合のみタイマーをセット
-        if (activeInfoType) {
-            const timer = setTimeout(() => {
-                setActiveInfoType(null); // 5秒後にパネルを非表示にする
-            }, 5000);
+        // データを取得する非同期関数を定義
+        const fetchPosts = async () => {
+            // タグが選択されていない場合は、投稿リストを空にして処理を終了
+            if (!activeTag) {
+                setPosts([]);
+                return;
+            }
 
-            // クリーンアップ関数：コンポーネントが再描画される前やアンマウントされる前にタイマーを解除
-            return () => clearTimeout(timer);
-        }
-    }, [activeInfoType]); // activeInfoTypeが変更されるたびにこのeffectが実行される
+            setIsLoading(true); // ローディング開始
+            try {
+                // 'posts'コレクションから、選択されたタグ('activeTag')に一致するデータを取得するクエリを作成
+                // createdAtで降順ソートして新しい投稿から表示
+                const postsCollection = collection(db, "posts");
+                const q = query(postsCollection, where("tag", "==", activeTag), orderBy("createdAt", "desc"));
+                
+                const querySnapshot = await getDocs(q);
 
-    // クリックで情報パネルを非表示にするためのeffect
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            // navRefとpanelRefのどちらの要素内もクリックされていない場合
-            if (
-                navRef.current && !navRef.current.contains(event.target) &&
-                panelRef.current && !panelRef.current.contains(event.target)
-            ) {
-                setActiveInfoType(null);
+                // 取得したデータをstateで利用しやすい形に変換
+                const postsData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                setPosts(postsData); // 取得したデータでstateを更新
+
+            } catch (error) {
+                console.error("データの取得に失敗しました: ", error);
+                alert("データの取得中にエラーが発生しました。");
+            } finally {
+                setIsLoading(false); // ローディング終了
             }
         };
-        // マウント時にイベントリスナーを追加
-        document.addEventListener('mousedown', handleClickOutside);
-        // アンマウント時にイベントリスナーを削除（メモリリーク防止）
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []); // 空の配列を渡すことで、このeffectは初回レンダリング時に一度だけ実行される
 
+        fetchPosts(); // 関数を実行
+    }, [activeTag]); // activeTagが変更されるたびにこのeffectが再実行される
+
+    // パネル外をクリックしたらパネルを閉じる処理 (useEffect)
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                topNavRef.current && !topNavRef.current.contains(event.target) &&
+                panelRef.current && !panelRef.current.contains(event.target)
+            ) {
+                setActiveTag(null); // タグの選択を解除
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div className="container">
-            <div className="top-nav" ref={navRef}>
-                <button className={`circular-btn ${activeInfoType === 'danger' ? 'active' : ''}`} onClick={() => handleShowInfo('danger')}>
-                    <div className="btn-icon">⚠️</div>
-                    危険情報
-                </button>
-                <button className={`circular-btn ${activeInfoType === 'scenery' ? 'active' : ''}`} onClick={() => handleShowInfo('scenery')}>
-                    <div className="btn-icon">🌸</div>
-                    風景
-                </button>
-                <button className={`circular-btn ${activeInfoType === 'traffic' ? 'active' : ''}`} onClick={() => handleShowInfo('traffic')}>
-                    <div className="btn-icon">🚗</div>
-                    交通情報
-                </button>
-                <button className={`circular-btn ${activeInfoType === 'event' ? 'active' : ''}`} onClick={() => handleShowInfo('event')}>
-                    <div className="btn-icon">🎉</div>
-                    イベント
-                </button>
+            {/* ★ 6. ボタンを配列データから動的に生成 */}
+            <div className="top-nav" ref={topNavRef}>
+                {tagButtons.map((button) => (
+                    <button
+                        key={button.type}
+                        className={`circular-btn ${activeTag === button.type ? 'active' : ''}`}
+                        onClick={() => handleTagClick(button.type)}
+                    >
+                        <div className="btn-icon">{button.icon}</div>
+                        {button.type}
+                    </button>
+                ))}
             </div>
 
             <div className="map-area">
-                <div className="map-placeholder">
-                    <MapContainer /> {/* あなたの地図コンポーネントに差し替え！ */}
-                </div>
+                {/* ★ 7. MapContainerに取得した投稿データをpropsとして渡す */}
+                <MapContainer posts={posts} />
 
-                <div id="info-panel" className={`info-panel ${activeInfoType ? 'active' : ''}`} ref={panelRef}>
-                    {/* activeInfoTypeが存在する場合のみ中身を表示 */}
-                    {activeInfoType && (
-                        <>
-                            <h3 id="info-title">{infoData[activeInfoType].title}</h3>
-                            <p id="info-content">{infoData[activeInfoType].content}</p>
-                        </>
+                {/* ★ 8. 情報パネルの表示内容を動的に変更 */}
+                <div id="info-panel" className={`info-panel ${activeTag ? 'active' : ''}`} ref={panelRef}>
+                    {activeTag && <h3>{activeTag}</h3>}
+                    
+                    {isLoading ? (
+                        <p>読み込み中...</p>
+                    ) : posts.length > 0 ? (
+                        <ul className="info-list">
+                            {posts.map(post => (
+                                <li key={post.id} className="info-item">
+                                    <p>{post.message}</p>
+                                    {/* 画像があれば表示 */}
+                                    {post.imageUrl && <img src={post.imageUrl} alt="投稿画像" />}
+                                    {/* 危険度情報があれば表示 */}
+                                    {post.riskLevel && <span className="risk-level">{post.riskLevel}</span>}
+                                    <small>{new Date(post.createdAt.seconds * 1000).toLocaleString('ja-JP')}</small>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        // データがない場合のメッセージ
+                        activeTag && <p>このタグの投稿はまだありません。</p>
                     )}
                 </div>
             </div>
 
-            <button className="map-submit-btn" onClick={handleSubmitInfo}>
-                <div className="submit-icon">📝</div>
-                投稿
-            </button>
+            {/* ★ 9. 不要になった投稿ボタンは削除しました */}
         </div>
     );
 }

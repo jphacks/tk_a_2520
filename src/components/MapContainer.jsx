@@ -1,196 +1,109 @@
 // src/components/MapContainer.jsx
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
-import { db } from '../firebase/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 
 const containerStyle = {
   width: '100%',
-  height: '70vh'
+  // InfoMapコンポーネントのレイアウトに合わせて高さを調整
+  height: 'calc(100vh - 100px)' // top-navの高さを考慮した例
 };
 
+// 初期表示の中心（例：東京駅）
 const center = {
   lat: 35.681236,
   lng: 139.767125
 };
 
-function MapContainer({ googleMapsApiKey }) {
+// ★ 1. 位置情報の文字列を緯度経度のオブジェクトに変換するヘルパー関数
+const parseLocation = (locationString) => {
+  // locationStringが不正な値の場合にエラーを防ぐ
+  if (!locationString || typeof locationString !== 'string') {
+    return null;
+  }
+
+  // 正規表現を使って "緯度: 35.xxx" と "経度: 139.xxx" から数値を抽出
+  const latMatch = locationString.match(/緯度: ([\d.-]+)/);
+  const lngMatch = locationString.match(/経度: ([\d.-]+)/);
+
+  // 緯度と経度の両方が見つかった場合のみオブジェクトを返す
+  if (latMatch && lngMatch) {
+    return {
+      lat: parseFloat(latMatch[1]),
+      lng: parseFloat(lngMatch[1])
+    };
+  }
+
+  // 見つからなかった場合はnullを返す
+  return null;
+};
+
+
+// ★ 2. propsとして `posts` を受け取るように変更
+function MapContainer({ posts }) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: googleMapsApiKey,
+    // APIキーは環境変数から取得することを推奨
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
-  const [pins, setPins] = useState([]);
-  const [tempPin, setTempPin] = useState(null);
-  const [activePin, setActivePin] = useState(null);
-  const [text, setText] = useState('');
-  const [map, setMap] = useState(null); // ★ 変更点: 地図インスタンスを保持するstate
+  // ★ 3. クリックされたマーカーの情報を保持するためのstate
+  const [selectedPost, setSelectedPost] = useState(null);
 
-  // ★ 変更点: 地図が読み込まれたときにインスタンスをstateに保存
-  const onLoad = useCallback(function callback(mapInstance) {
-    setMap(mapInstance);
-  }, []);
-
-  // ★ 変更点: コンポーネントがアンマウントされるときにインスタンスをクリア
-  const onUnmount = useCallback(function callback(_map) {
-    setMap(null);
-  }, []);
-
-  // Firestoreからピンのデータをリアルタイムで取得 (ここは変更なし)
-  useState(() => {
-    const pinsCollectionRef = collection(db, 'pins');
-    const unsubscribe = onSnapshot(pinsCollectionRef, (querySnapshot) => {
-      const pinsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setPins(pinsData);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // 地図をクリックしたときの処理 (ここは変更なし)
-  const onMapClick = useCallback((event) => {
-    setTempPin({
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-    });
-    setActivePin(null);
-    setText('');
-  }, []);
-
-  // ★ 変更点: 現在地を取得する新しい関数
-  const findMyLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const currentLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // 地図の中心を現在地に移動させる
-          if (map) {
-            map.panTo(currentLocation);
-            map.setZoom(15); // 少しズームする
-          }
-
-          // 現在地に新しいピンを立てる
-          setTempPin(currentLocation);
-          setActivePin(null);
-          setText('');
-        },
-        (error) => {
-          // エラーハンドリング
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              alert("位置情報の利用が許可されていません。ブラウザの設定を確認してください。");
-              break;
-            case error.POSITION_UNAVAILABLE:
-              alert("位置情報が取得できませんでした。");
-              break;
-            case error.TIMEOUT:
-              alert("位置情報の取得がタイムアウトしました。");
-              break;
-            default:
-              alert("不明なエラーが発生しました。");
-              break;
-          }
-        }
-      );
-    } else {
-      alert("お使いのブラウザは位置情報機能に対応していません。");
-    }
-  };
-
-  // 投稿を保存する処理 (ここは変更なし)
-  const handlePostSubmit = async (e) => {
-    e.preventDefault();
-    if (!text.trim() || !tempPin) return;
-    try {
-      await addDoc(collection(db, 'pins'), {
-        lat: tempPin.lat,
-        lng: tempPin.lng,
-        text: text,
-        createdAt: serverTimestamp()
-      });
-      setTempPin(null);
-      setText('');
-    } catch (error) {
-      console.error("投稿の保存中にエラーが発生しました: ", error);
-    }
-  };
+  // ★ 4. 投稿機能に関連するstateや関数はすべて削除
+  // (pins, tempPin, activePin, text, onMapClick, findMyLocation, handlePostSubmit, onSnapshotなど)
 
   if (!isLoaded) return <div>地図を読み込んでいます...</div>;
 
   return (
-    <div>
-      {/* ★ 変更点: 現在地取得ボタンを追加 */}
-      <button onClick={findMyLocation} style={{ marginBottom: '10px', padding: '10px 15px', fontSize: '16px', cursor: 'pointer' }}>
-        📍 現在地から投稿する
-      </button>
+    // ★ 5. 投稿ボタンを削除
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+    >
+      {/* ★ 6. propsで受け取った`posts`配列を元にマーカーを生成 */}
+      {posts.map(post => {
+        // location文字列を緯度経度オブジェクトに変換
+        const position = parseLocation(post.location);
 
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={12}
-        onClick={onMapClick}
-        onLoad={onLoad} // ★ 変更点
-        onUnmount={onUnmount} // ★ 変更点
-      >
-        {/* Firestoreから取得した既存のピンを表示 */}
-        {pins.map(pin => (
+        // positionが正しく変換できた投稿のみマーカーを表示
+        if (!position) return null;
+
+        return (
           <Marker
-            key={pin.id}
-            position={{ lat: pin.lat, lng: pin.lng }}
+            key={post.id}
+            position={position}
+            // マーカーがクリックされたら、その投稿情報をstateに保存
             onClick={() => {
-              setActivePin(pin);
-              setTempPin(null);
+              setSelectedPost(post);
             }}
           />
-        ))}
+        );
+      })}
 
-        {/* 既存のピンをクリックしたときに表示する情報ウィンドウ */}
-        {activePin && (
-          <InfoWindow
-            position={{ lat: activePin.lat, lng: activePin.lng }}
-            onCloseClick={() => setActivePin(null)}
-          >
-            <div>
-              <p>{activePin.text}</p>
-              <small>投稿日時: {activePin.createdAt?.toDate().toLocaleString('ja-JP')}</small>
-            </div>
-          </InfoWindow>
-        )}
-
-        {/* 新規投稿用のピン（一時的）*/}
-        {tempPin && (
-          <Marker position={{ lat: tempPin.lat, lng: tempPin.lng }} />
-        )}
-
-        {/* 新規投稿用のフォーム（InfoWindow内）*/}
-        {tempPin && (
-          <InfoWindow
-            position={{ lat: tempPin.lat, lng: tempPin.lng }}
-            onCloseClick={() => setTempPin(null)}
-          >
-            <form onSubmit={handlePostSubmit}>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="テキストを入力..."
-                rows="4"
-                cols="30"
-                required
-                style={{ display: 'block', marginBottom: '10px' }}
-              />
-              <button type="submit">投稿する</button>
-            </form>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-    </div>
+      {/* ★ 7. 選択された投稿がある場合に情報ウィンドウを表示 */}
+      {selectedPost && (
+        <InfoWindow
+          // 表示位置は選択された投稿の位置
+          position={parseLocation(selectedPost.location)}
+          // 閉じるボタンが押されたら、選択状態をリセット
+          onCloseClick={() => {
+            setSelectedPost(null);
+          }}
+        >
+          {/* 情報ウィンドウの中に投稿の詳細を表示 */}
+          <div className="info-window-content">
+            <p><strong>{selectedPost.message}</strong></p>
+            {selectedPost.riskLevel && <p className="risk-level">危険度: {selectedPost.riskLevel}</p>}
+            {selectedPost.imageUrl && <img src={selectedPost.imageUrl} alt="投稿画像" style={{ maxWidth: '150px' }} />}
+            <small>
+              {new Date(selectedPost.createdAt.seconds * 1000).toLocaleString('ja-JP')}
+            </small>
+          </div>
+        </InfoWindow>
+      )}
+    </GoogleMap>
   );
 }
 

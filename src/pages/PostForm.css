@@ -7,7 +7,6 @@ body {
     color: #333;
 }
 
-/* 白い背景のコンテナのスタイル */
 .container {
     max-width: 600px;
     margin: 20px auto;
@@ -15,15 +14,13 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    /* heightプロパティは指定しないことで、内容に応じて高さが自動調整されます */
 }
 
-/* 各フォーム要素のグループ */
+/* 各フォームグループの余白 */
 .form-group {
     margin-bottom: 25px;
 }
 
-/* ラベルのスタイル */
 label {
     display: block;
     font-weight: bold;
@@ -38,17 +35,17 @@ select {
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* paddingを含めてwidth 100%にするため */
     font-size: 16px;
 }
 
 textarea {
     height: 180px;
-    resize: vertical;
+    resize: vertical; /* 上下のリサイズのみ許可 */
 }
 
 input[readonly] {
-    background-color: #e9ecef;
+    background-color: #e9ecef; /* 読み取り専用の背景色 */
 }
 
 /* ボタンの共通スタイル */
@@ -63,27 +60,12 @@ input[readonly] {
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
+    background-color: #00bfff; /* 水色 */
     transition: background-color 0.2s;
 }
 
-.submit-btn {
-    width: 100%;
-    padding: 14px;
-    background-color: #007bff; /* 青色 */
-}
-
-.map-btn {
-    margin-bottom: 10px;
-    background-color: #00bfff; /* 水色 */
-}
-
-.image-btn {
-    background-color: #00bfff; /* 水色 */
-}
-
-.clear-btn {
-    background-color: #dc3545; /* 赤色 */
-    margin-top: 10px;
+.btn:hover {
+    background-color: #00a0d1;
 }
 
 /* メッセージボックスと画像ボタンの配置 */
@@ -97,17 +79,25 @@ input[readonly] {
     right: 10px;
 }
 
-/* 画像プレビューのスタイル */
-#imagePreviewContainer {
-    margin-top: 15px;
+/* 地図検索ボタンの右側の余白 */
+.map-btn {
+    margin-bottom: 10px;
 }
 
+/* 送信ボタンは横幅いっぱいに */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+}
+
+/* 画像プレビューのスタイル */
 #imagePreviewContainer img {
-    max-width: 100%;
+    max-width: 100%; /* 親要素の幅に収める */
     height: auto;
+    margin-top: 15px;
     border-radius: 6px;
     border: 1px solid #ddd;
-}
+}*/
 
 /* 画像削除ボタンのスタイル */
 .clear-btn {
