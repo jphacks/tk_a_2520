@@ -1,94 +1,75 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PostForm.css';
-// ★ 1. Firebaseの設定と、Firestore・Storageの関数をインポート
-import { db, storage } from '..firebase/firebase';
+import { db, storage } from '../firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import MapModal from './MapModal'; // ★ モーダルコンポーネントをインポート
 
 function PostForm() {
-    // フォームの各入力値の状態を管理する
     const [message, setMessage] = useState('');
     const [tag, setTag] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const [isLoading, setIsLoading] = useState(false); // ★ ローディング状態を追加
-    const location = "東京都文京区から取得（仮）"; // 位置情報は固定
+    const [isLoading, setIsLoading] = useState(false);
+    const [location, setLocation] = useState('東京都文京区から取得（仮）'); // 初期値
+    const [showMapModal, setShowMapModal] = useState(false); // ★ モーダル表示状態
 
     const navigate = useNavigate();
 
-    // 画像が選択されたときの処理
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            setImageFile(file); // ファイル自体を保持
-            setImagePreview(URL.createObjectURL(file)); // プレビュー用のURLを生成
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
-    // 画像を削除する処理
     const handleClearImage = () => {
         setImagePreview(null);
         setImageFile(null);
-        // inputの値をリセット
         document.getElementById('imageUpload').value = '';
     };
 
-    // ★ 2. 送信処理をFirebaseにデータを保存する非同期処理に変更
     const handleSubmit = async (event) => {
-        event.preventDefault(); // フォームのデフォルト送信をキャンセル
-
+        event.preventDefault();
         if (!message || !tag) {
             alert("メッセージとタグは必須です。");
             return;
         }
-        setIsLoading(true); // 送信処理の開始
+        setIsLoading(true);
 
         try {
-            let imageUrl = ""; // 画像URLを格納する変数
-
-            // 画像があればStorageにアップロード
+            let imageUrl = "";
             if (imageFile) {
-                // ファイルへの参照を作成 (ファイル名が重複しないように日時を付与)
                 const storageRef = ref(storage, `images/${imageFile.name + Date.now()}`);
-                
-                // ファイルをアップロード
                 await uploadBytes(storageRef, imageFile);
-                
-                // アップロードしたファイルのURLを取得
                 imageUrl = await getDownloadURL(storageRef);
             }
 
-            // Firestoreに保存するデータオブジェクトを作成
             const postData = {
-                message: message,
-                location: location,
-                tag: tag,
-                imageUrl: imageUrl, // 画像がない場合は空文字が入る
-                createdAt: new Date(), // 作成日時
+                message,
+                location,
+                tag,
+                imageUrl,
+                createdAt: new Date(),
             };
 
-            // Firestoreの'posts'コレクションにデータを追加
-            const docRef = await addDoc(collection(db, "posts"), postData);
-            console.log("Document written with ID: ", docRef.id);
-
+            await addDoc(collection(db, "posts"), postData);
             alert('投稿が完了しました！');
-            navigate('/map'); // マップページへ遷移
-
+            navigate('/map');
         } catch (error) {
-            console.error("投稿中にエラーが発生しました: ", error);
-            alert(`投稿に失敗しました。\nエラー: ${error.message}`);
+            console.error("投稿中にエラー: ", error);
+            alert(`投稿に失敗しました。\n${error.message}`);
         } finally {
-            setIsLoading(false); // 送信処理の終了
+            setIsLoading(false);
         }
     };
 
-
-    // ここで画面に表示する内容を記述（HTMLに似たJSXという記法）
     return (
         <div className="container">
             <form onSubmit={handleSubmit}>
-                {/* メッセージセクション */}
+                {/* メッセージ */}
                 <div className="form-group">
                     <label htmlFor="message">メッセージ</label>
                     <div className="message-box-container">
@@ -108,7 +89,6 @@ function PostForm() {
                         />
                         <label htmlFor="imageUpload" className="btn image-btn">＋画像</label>
                     </div>
-                    {/* 画像プレビュー（imagePreviewがnullでない時だけ表示） */}
                     {imagePreview && (
                         <div id="imagePreviewContainer">
                             <img src={imagePreview} alt="Preview" />
@@ -119,14 +99,26 @@ function PostForm() {
                     )}
                 </div>
 
-                {/* 位置情報セクション */}
+                {/* 位置情報 */}
                 <div className="form-group">
                     <label>位置情報</label>
-                    <a href="map_page.html" className="btn map-btn">地図検索</a>
-                    <input type="text" id="location" name="location" readOnly value={location} />
+                    <button
+                        type="button"
+                        className="btn map-btn"
+                        onClick={() => setShowMapModal(true)}
+                    >
+                        地図検索
+                    </button>
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        readOnly
+                        value={location}
+                    />
                 </div>
 
-                {/* タグセクション */}
+                {/* タグ */}
                 <div className="form-group">
                     <label htmlFor="tag">タグ</label>
                     <select id="tag" name="tag" value={tag} onChange={(e) => setTag(e.target.value)}>
@@ -141,12 +133,22 @@ function PostForm() {
 
                 {/* 送信ボタン */}
                 <div className="form-group">
-                    {/* ★ ローディング中はボタンを無効化し、テキストを変更 */}
                     <button type="submit" className="btn submit-btn" disabled={isLoading}>
                         {isLoading ? '送信中...' : '送信'}
                     </button>
                 </div>
             </form>
+
+            {/* ★ モーダルを表示 */}
+            {showMapModal && (
+                <MapModal
+                    onClose={() => setShowMapModal(false)}
+                    onSelectLocation={(lat, lng) => {
+                        setLocation(`緯度: ${lat.toFixed(5)}, 経度: ${lng.toFixed(5)}`);
+                        setShowMapModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 }
