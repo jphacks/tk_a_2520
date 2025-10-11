@@ -11,12 +11,12 @@ body {
     margin: 0;
 }
 
-.container {
+/*.container {
     display: grid;
     grid-template-rows: auto 1fr;
     height: 100vh;
     gap: 0;
-}
+}*/
 
 .top-nav {
     display: flex;
