@@ -2,25 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PostForm.css';
 import { db, storage } from '../firebase/firebase';
-// ★ 修正点 1: serverTimestamp をインポート
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import MapModal from './MapModal';
 
 function PostForm() {
-    // --- State定義 (変更なし) ---
+    // --- State定義 ---
     const [message, setMessage] = useState('');
     const [tag, setTag] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [location, setLocation] = useState('地図から位置を選択してください');
+    const [location, setLocation] = useState(null); // ← 数値形式に変更
     const [showMapModal, setShowMapModal] = useState(false);
     const [riskLevel, setRiskLevel] = useState('');
 
     const navigate = useNavigate();
 
-    // --- 各種ハンドラ関数 (変更なし) ---
+    // --- 画像アップロード ---
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -35,6 +34,7 @@ function PostForm() {
         document.getElementById('imageUpload').value = '';
     };
 
+    // --- タグ変更 ---
     const handleTagChange = (event) => {
         const newTag = event.target.value;
         setTag(newTag);
@@ -43,11 +43,11 @@ function PostForm() {
         }
     };
 
-    // --- フォーム送信処理 ---
+    // --- フォーム送信 ---
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // バリデーション (変更なし)
+        // バリデーション
         if (!message || !tag) {
             alert("メッセージとタグは必須です。");
             return;
@@ -56,7 +56,7 @@ function PostForm() {
             alert("危険度を選択してください。");
             return;
         }
-        if (location === '地図から位置を選択してください') {
+        if (!location) {
             alert("位置情報を設定してください。");
             return;
         }
@@ -72,13 +72,15 @@ function PostForm() {
             }
 
             const postData = {
-                message: message,
-                location: location,
-                tag: tag,
-                imageUrl: imageUrl,
-                // ★ 修正点 2: new Date() を serverTimestamp() に変更
+                message,
+                tag,
+                imageUrl,
                 createdAt: serverTimestamp(),
-                ...(riskLevel && { riskLevel: riskLevel }),
+                location: {
+                    lat: location.lat,
+                    lng: location.lng,
+                },
+                ...(riskLevel && { riskLevel }),
             };
 
             await addDoc(collection(db, "posts"), postData);
@@ -87,7 +89,6 @@ function PostForm() {
             navigate('/map');
 
         } catch (error) {
-            // ★ 修正点 3: エラーログを詳細化
             console.error("投稿中に詳細なエラーが発生しました: ", error);
             alert(`投稿に失敗しました。\nエラー: ${error.message}`);
         } finally {
@@ -95,11 +96,10 @@ function PostForm() {
         }
     };
 
-    // --- JSX (変更なし) ---
     return (
         <div className="container">
             <form onSubmit={handleSubmit}>
-                {/* メッセージセクション */}
+                {/* メッセージ */}
                 <div className="form-group">
                     <label htmlFor="message">メッセージ</label>
                     <div className="message-box-container">
@@ -122,14 +122,18 @@ function PostForm() {
                     {imagePreview && (
                         <div id="imagePreviewContainer">
                             <img src={imagePreview} alt="Preview" />
-                            <button type="button" onClick={handleClearImage} className="btn clear-btn">
+                            <button
+                                type="button"
+                                onClick={handleClearImage}
+                                className="btn clear-btn"
+                            >
                                 画像を削除
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* 位置情報セクション */}
+                {/* 位置情報 */}
                 <div className="form-group">
                     <label>位置情報</label>
                     <button
@@ -144,11 +148,15 @@ function PostForm() {
                         id="location"
                         name="location"
                         readOnly
-                        value={location}
+                        value={
+                            location
+                                ? `緯度: ${location.lat.toFixed(5)}, 経度: ${location.lng.toFixed(5)}`
+                                : '地図から位置を選択してください'
+                        }
                     />
                 </div>
 
-                {/* タグセクション */}
+                {/* タグ */}
                 <div className="form-group">
                     <label htmlFor="tag">タグ</label>
                     <select id="tag" name="tag" value={tag} onChange={handleTagChange}>
@@ -161,11 +169,16 @@ function PostForm() {
                     </select>
                 </div>
 
-                {/* 危険度セクション */}
+                {/* 危険度 */}
                 {tag === '危険情報' && (
                     <div className="form-group">
                         <label htmlFor="riskLevel">危険度</label>
-                        <select id="riskLevel" name="riskLevel" value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)}>
+                        <select
+                            id="riskLevel"
+                            name="riskLevel"
+                            value={riskLevel}
+                            onChange={(e) => setRiskLevel(e.target.value)}
+                        >
                             <option value="">選択してください</option>
                             <option value="危険エリア">危険エリア</option>
                             <option value="スリ多発地域">スリ多発地域</option>
@@ -177,7 +190,11 @@ function PostForm() {
 
                 {/* 送信ボタン */}
                 <div className="form-group">
-                    <button type="submit" className="btn submit-btn" disabled={isLoading}>
+                    <button
+                        type="submit"
+                        className="btn submit-btn"
+                        disabled={isLoading}
+                    >
                         {isLoading ? '送信中...' : '送信'}
                     </button>
                 </div>
@@ -188,7 +205,7 @@ function PostForm() {
                 <MapModal
                     onClose={() => setShowMapModal(false)}
                     onSelectLocation={(lat, lng) => {
-                        setLocation(`緯度: ${lat.toFixed(5)}, 経度: ${lng.toFixed(5)}`);
+                        setLocation({ lat, lng });
                         setShowMapModal(false);
                     }}
                 />
