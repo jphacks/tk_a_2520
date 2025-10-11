@@ -2,11 +2,11 @@ import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import InfoMap from './pages/InfoMap'; // pagesフォルダからインポート
 import PostDetail from './pages/PostDetail'; // pagesフォルダからインポート
-
+import PostForm from './pages/PostForm'; // pagesフォルダからインポート
 // PostFormコンポーネントのファイルがまだないので、仮で作成します
-function PostForm() {
+/*function PostForm() {
   return <h1>投稿フォームページ（仮）</h1>;
-}
+}*/
 
 function App() {
   return (
