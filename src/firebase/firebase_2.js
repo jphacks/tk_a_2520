@@ -3,18 +3,18 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
-const firebaseConfig = {
-  //apiKey: "AIzaSy...YOUR_API_KEY",
-  //authDomain: "your-project-id.firebaseapp.com",
-  //projectId: "your-project-id",
-  //storageBucket: "your-project-id.appspot.com",
-  //messagingSenderId: "1234567890",
-  //appId: "1:1234567890:web:abcdef123456"
-  
+const firebaseConfigB = {
+  apiKey: import.meta.env.VITE_PROJECT_B_API_KEY,
+  authDomain: import.meta.env.VITE_PROJECT_B_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_PROJECT_B_DATABASE_URL,
+  projectId: import.meta.env.VITE_PROJECT_B_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_PROJECT_B_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_PROJECT_B_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_PROJECT_B_APP_ID
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfigB);
 
 // 各サービスへの参照をエクスポート
 export const db = getFirestore(app);
