@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PostForm.css';
 // ★ 1. Firebaseの設定と、Firestore・Storageの関数をインポート
-import { db, storage } from '..firebase/firebase_2';
+import { db, storage } from '..firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
