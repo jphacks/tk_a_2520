@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 // import { getAuth } from "firebase/auth"; // 認証機能を追加する場合
+import { getStorage } from "firebase/storage";
 
 
 // Your web app's Firebase configuration
@@ -22,6 +23,7 @@ const app = initializeApp(firebaseConfigA);
 
 // Firestoreインスタンスを取得
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 // 認証機能を追加する場合はこちらもエクスポートします
 // export const auth = getAuth(app);
