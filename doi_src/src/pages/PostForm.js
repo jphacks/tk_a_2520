@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // ★ 1. useNavigateをインポート
+import { useNavigate } from 'react-router-dom';
 import './PostForm.css';
+// ★ 1. Firebaseの設定と、Firestore・Storageの関数をインポート
+import { db, storage } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function PostForm() {
     // フォームの各入力値の状態を管理する
@@ -8,9 +12,10 @@ function PostForm() {
     const [tag, setTag] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false); // ★ ローディング状態を追加
     const location = "東京都文京区から取得（仮）"; // 位置情報は固定
 
-    const navigate = useNavigate(); // ★ 2. useNavigateフックを呼び出す
+    const navigate = useNavigate();
 
     // 画像が選択されたときの処理
     const handleImageChange = (event) => {
@@ -29,29 +34,53 @@ function PostForm() {
         document.getElementById('imageUpload').value = '';
     };
 
-    // 送信ボタンが押されたときの処理
-    const handleSubmit = (event) => {
+    // ★ 2. 送信処理をFirebaseにデータを保存する非同期処理に変更
+    const handleSubmit = async (event) => {
         event.preventDefault(); // フォームのデフォルト送信をキャンセル
 
-        const formData = {
-            message: message,
-            location: location,
-            tag: tag,
-            imageName: imageFile ? imageFile.name : 'なし',
-        };
+        if (!message || !tag) {
+            alert("メッセージとタグは必須です。");
+            return;
+        }
+        setIsLoading(true); // 送信処理の開始
 
-        console.log('送信されるデータ:', formData);
-        
-        // ★ 3. alertをコメントアウトし、代わりにページ遷移を実行
-        // alert(
-        //     `以下の内容が送信されました（仮）:\n` +
-        //     `メッセージ: ${formData.message.substring(0, 20)}...\n` +
-        //     `位置情報: ${formData.location}\n` +
-        //     `タグ: ${formData.tag}\n` +
-        //     `画像: ${formData.imageName}`
-        // );
-        
-        navigate('/map'); // 情報マップのパス'/map'に遷移
+        try {
+            let imageUrl = ""; // 画像URLを格納する変数
+
+            // 画像があればStorageにアップロード
+            if (imageFile) {
+                // ファイルへの参照を作成 (ファイル名が重複しないように日時を付与)
+                const storageRef = ref(storage, `images/${imageFile.name + Date.now()}`);
+                
+                // ファイルをアップロード
+                await uploadBytes(storageRef, imageFile);
+                
+                // アップロードしたファイルのURLを取得
+                imageUrl = await getDownloadURL(storageRef);
+            }
+
+            // Firestoreに保存するデータオブジェクトを作成
+            const postData = {
+                message: message,
+                location: location,
+                tag: tag,
+                imageUrl: imageUrl, // 画像がない場合は空文字が入る
+                createdAt: new Date(), // 作成日時
+            };
+
+            // Firestoreの'posts'コレクションにデータを追加
+            const docRef = await addDoc(collection(db, "posts"), postData);
+            console.log("Document written with ID: ", docRef.id);
+
+            alert('投稿が完了しました！');
+            navigate('/map'); // マップページへ遷移
+
+        } catch (error) {
+            console.error("投稿中にエラーが発生しました: ", error);
+            alert(`投稿に失敗しました。\nエラー: ${error.message}`);
+        } finally {
+            setIsLoading(false); // 送信処理の終了
+        }
     };
 
 
@@ -112,7 +141,10 @@ function PostForm() {
 
                 {/* 送信ボタン */}
                 <div className="form-group">
-                    <button type="submit" className="btn submit-btn">送信</button>
+                    {/* ★ ローディング中はボタンを無効化し、テキストを変更 */}
+                    <button type="submit" className="btn submit-btn" disabled={isLoading}>
+                        {isLoading ? '送信中...' : '送信'}
+                    </button>
                 </div>
             </form>
         </div>
