@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // ← 正しいライブラリ名
 import './PostForm.css';
-// ★ 1. Firebaseの設定と、Firestore・Storageの関数をインポート
 import { db, storage } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -10,81 +9,86 @@ function PostForm() {
     // フォームの各入力値の状態を管理する
     const [message, setMessage] = useState('');
     const [tag, setTag] = useState('');
+    const [riskLevel, setRiskLevel] = useState(''); // ★ 1. 危険度を管理するstateを追加
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const [isLoading, setIsLoading] = useState(false); // ★ ローディング状態を追加
-    const location = "東京都文京区から取得（仮）"; // 位置情報は固定
+    const [isLoading, setIsLoading] = useState(false);
+    const location = "東京都文京区から取得（仮）";
 
     const navigate = useNavigate();
 
-    // 画像が選択されたときの処理
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            setImageFile(file); // ファイル自体を保持
-            setImagePreview(URL.createObjectURL(file)); // プレビュー用のURLを生成
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
-    // 画像を削除する処理
     const handleClearImage = () => {
         setImagePreview(null);
         setImageFile(null);
-        // inputの値をリセット
         document.getElementById('imageUpload').value = '';
     };
 
-    // ★ 2. 送信処理をFirebaseにデータを保存する非同期処理に変更
+    // ★ タグが変更されたときの処理を分離
+    const handleTagChange = (event) => {
+        const newTag = event.target.value;
+        setTag(newTag);
+        // もしタグが「危険情報」以外に変更されたら、危険度の選択をリセット
+        if (newTag !== '危険情報') {
+            setRiskLevel('');
+        }
+    };
+
     const handleSubmit = async (event) => {
-        event.preventDefault(); // フォームのデフォルト送信をキャンセル
+        event.preventDefault();
 
         if (!message || !tag) {
             alert("メッセージとタグは必須です。");
             return;
         }
-        setIsLoading(true); // 送信処理の開始
+        // ★ 「危険情報」が選択されているのに「危険度」が未選択の場合のエラーチェック
+        if (tag === '危険情報' && !riskLevel) {
+            alert("危険度を選択してください。");
+            return;
+        }
+        setIsLoading(true);
 
         try {
-            let imageUrl = ""; // 画像URLを格納する変数
+            let imageUrl = "";
 
-            // 画像があればStorageにアップロード
             if (imageFile) {
-                // ファイルへの参照を作成 (ファイル名が重複しないように日時を付与)
                 const storageRef = ref(storage, `images/${imageFile.name + Date.now()}`);
-                
-                // ファイルをアップロード
                 await uploadBytes(storageRef, imageFile);
-                
-                // アップロードしたファイルのURLを取得
                 imageUrl = await getDownloadURL(storageRef);
             }
 
-            // Firestoreに保存するデータオブジェクトを作成
+            // ★ 保存するデータにriskLevelを追加
             const postData = {
                 message: message,
                 location: location,
                 tag: tag,
-                imageUrl: imageUrl, // 画像がない場合は空文字が入る
-                createdAt: new Date(), // 作成日時
+                // riskLevelが選択されている場合のみ、その値を保存
+                ...(riskLevel && { riskLevel: riskLevel }),
+                imageUrl: imageUrl,
+                createdAt: new Date(),
             };
 
-            // Firestoreの'posts'コレクションにデータを追加
             const docRef = await addDoc(collection(db, "posts"), postData);
             console.log("Document written with ID: ", docRef.id);
 
             alert('投稿が完了しました！');
-            navigate('/map'); // マップページへ遷移
+            navigate('/map');
 
         } catch (error) {
             console.error("投稿中にエラーが発生しました: ", error);
             alert(`投稿に失敗しました。\nエラー: ${error.message}`);
         } finally {
-            setIsLoading(false); // 送信処理の終了
+            setIsLoading(false);
         }
     };
 
-
-    // ここで画面に表示する内容を記述（HTMLに似たJSXという記法）
     return (
         <div className="container">
             <form onSubmit={handleSubmit}>
@@ -129,7 +133,7 @@ function PostForm() {
                 {/* タグセクション */}
                 <div className="form-group">
                     <label htmlFor="tag">タグ</label>
-                    <select id="tag" name="tag" value={tag} onChange={(e) => setTag(e.target.value)}>
+                    <select id="tag" name="tag" value={tag} onChange={handleTagChange}>
                         <option value="">選択してください</option>
                         <option value="風景">風景</option>
                         <option value="危険情報">危険情報</option>
@@ -139,9 +143,22 @@ function PostForm() {
                     </select>
                 </div>
 
+                {/* ★ 2. 「危険情報」タグが選択された時だけ表示される危険度セクション */}
+                {tag === '危険情報' && (
+                    <div className="form-group">
+                        <label htmlFor="riskLevel">危険度</label>
+                        <select id="riskLevel" name="riskLevel" value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)}>
+                            <option value="">選択してください</option>
+                            <option value="危険エリア">危険エリア</option>
+                            <option value="スリ多発地域">スリ多発地域</option>
+                            <option value="交通事故注意">交通事故注意</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                )}
+
                 {/* 送信ボタン */}
                 <div className="form-group">
-                    {/* ★ ローディング中はボタンを無効化し、テキストを変更 */}
                     <button type="submit" className="btn submit-btn" disabled={isLoading}>
                         {isLoading ? '送信中...' : '送信'}
                     </button>
