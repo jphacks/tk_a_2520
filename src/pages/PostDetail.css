@@ -1,0 +1,65 @@
+.post-detail-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 30px); /* ビューポートの高さからpaddingを引いた値 */
+    box-sizing: border-box;
+}
+
+.post-content {
+    flex-grow: 1; /* 残りの高さをすべて使う */
+    background-color: #f0f2f5; /* 画像で指定された灰色 */
+    border-radius: 8px;
+    padding: 20px;
+    overflow-y: auto; /* 内容が多ければスクロール可能にする */
+    margin-bottom: 20px;
+}
+
+.post-content .message-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-wrap; /* 改行をそのまま表示する */
+    margin-bottom: 20px;
+}
+
+.post-content img {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.button-area {
+    display: flex;
+    justify-content: space-around; /* ボタンを均等に配置 */
+    gap: 15px; /* ボタン間の隙間 */
+}
+
+.btn {
+    flex-grow: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98); /* クリック時に少し縮むエフェクト */
+}
+
+.good-btn {
+    background-color: #dc3545; /* 赤色 */
+}
+
+.back-btn {
+    background-color: #007bff; /* 青色 */
+}

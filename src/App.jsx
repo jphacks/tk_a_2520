@@ -1,22 +1,30 @@
-// src/App.jsx
-
 import React from 'react';
-import MapContainer from './components/MapContainer';
-import './App.css'; // あとでスタイルを適用するために読み込んでおく
+import { Routes, Route, Link } from 'react-router-dom';
+import InfoMap from './pages/InfoMap'; // pagesフォルダからインポート
+import PostDetail from './pages/PostDetail'; // pagesフォルダからインポート
+
+// PostFormコンポーネントのファイルがまだないので、仮で作成します
+function PostForm() {
+  return <h1>投稿フォームページ（仮）</h1>;
+}
 
 function App() {
-  // ★★★ ここにGoogle Maps Platformで取得したAPIキーを入力してください ★★★
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;// 例: AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>地図に思い出をピン留めしよう 🗺️</h1>
-        <p>地図上の好きな場所をクリックして、テキストを投稿してください。</p>
-      </header>
-      <main>
-        <MapContainer googleMapsApiKey={apiKey} />
-      </main>
+    <div>
+      {/* ページ移動用のテストナビゲーション */}
+      <nav style={{ padding: '10px', backgroundColor: '#eee', marginBottom: '20px' }}>
+        <strong>ページ移動テスト:</strong>
+        <Link to="/" style={{ marginLeft: '15px' }}>投稿フォーム</Link>
+        <Link to="/post/1" style={{ marginLeft: '15px' }}>投稿詳細</Link>
+        <Link to="/map" style={{ marginLeft: '15px' }}>情報マップ</Link>
+      </nav>
+
+      {/* URLに応じて表示するコンポーネントを切り替える設定 */}
+      <Routes>
+        <Route path="/" element={<PostForm />} />
+        <Route path="/post/1" element={<PostDetail />} />
+        <Route path="/map" element={<InfoMap />} />
+      </Routes>
     </div>
   );
 }
