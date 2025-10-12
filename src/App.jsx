@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import InfoMap from './pages/InfoMap'; // pagesフォルダからインポート
+import InfoMap from './pages/PostMap'; // pagesフォルダからインポート
 import PostDetail from './pages/PostDetail'; // pagesフォルダからインポート
 import PostForm from './pages/PostForm'; // pagesフォルダからインポート
 // PostFormコンポーネントのファイルがまだないので、仮で作成します
@@ -23,7 +23,7 @@ function App() {
       <Routes>
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/1" element={<PostDetail />} />
-        <Route path="/maps" element={<InfoMap />} />
+        <Route path="/maps" element={<PostMap />} />
       </Routes>
     </div>
   );
