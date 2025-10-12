@@ -1,6 +1,6 @@
 # Michikusa GO
 
-[![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2025/05/JPHACKS2025_ogp.jpg)](https://www.youtube.com/watch?v=lA9EluZugD8)
+[![IMAGE ALT TEXT HERE](src/assets/IMG_2392)](https://www.youtube.com/watch?v=lA9EluZugD8)
 
 ## 製品概要
 Michikusa GOは、旅行者が旅先での「小さな発見」を共有できるスマホ向けアプリです。特に目的地までの道中や街歩きなど「道草」をより楽しくすることを目指しています。
