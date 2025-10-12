@@ -1,6 +1,7 @@
 // src/pages/PostMap.jsx
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
+// 📍 修正点 1: useLoadScriptをインポート
+import { GoogleMap, Marker, InfoWindow, useLoadScript } from '@react-google-maps/api';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { doc, updateDoc, increment } from "firebase/firestore";
@@ -15,9 +16,12 @@ const defaultCenter = {
   lng: 139.767125,
 };
 
+// Google Maps APIを読み込むためのライブラリ設定
+const libraries = ["places"];
+
 // 📍「危険情報」タグ専用のマーカーアイコンを返す関数
 const getMarkerIcon = (riskLevel) => {
-  let color = 'red'; // デフォルトは赤
+  let color = 'red';
 
   switch (riskLevel) {
     case '危険エリア':
@@ -33,19 +37,23 @@ const getMarkerIcon = (riskLevel) => {
       color = 'green';
       break;
     default:
-      color = 'grey'; // 未分類の危険情報があればグレーなど
+      color = 'grey';
   }
-
-  // 📍 (改善) 正しいURL形式に修正
+  
+  // 📍 修正点 2: 正しいURL形式に修正
   return {
     url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
     scaledSize: new window.google.maps.Size(32, 32),
   };
 };
 
-// 🗑️ getDefaultMarkerIcon 関数は不要なので削除しました
-
 function PostMap() {
+  // 📍 修正点 3: Google Mapsスクリプトの読み込み状態を管理
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY", // 🚨 必ずご自身のAPIキーに置き換えてください！
+    libraries,
+  });
+
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedTag, setSelectedTag] = useState("すべて");
@@ -97,13 +105,26 @@ function PostMap() {
       ? posts
       : posts.filter((post) => post.tag === selectedTag);
 
+  // 📍 修正点 4: FirestoreのGeoPointを安全に取得するためのヘルパー関数
+  const getPosition = (location) => {
+    if (!location) return null;
+    const lat = location.latitude;
+    const lng = location.longitude;
+    if (lat == null || lng == null) return null;
+    return { lat, lng };
+  };
+
+  // 読み込み中とエラーの表示
+  if (loadError) return "地図の読み込み中にエラーが発生しました。";
+  if (!isLoaded) return "地図を読み込み中です...";
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <div style={{ padding: "10px", textAlign: "center" }}>
         {tags.map((tag) => (
           <button
             key={tag}
-            onClick={() => setSelectedTag(tag)}
+            onClick={() => setSelectedPost(null) || setSelectedTag(tag)}
             style={{
               margin: "5px",
               padding: "8px 16px",
@@ -125,55 +146,42 @@ function PostMap() {
         mapContainerStyle={containerStyle}
         center={defaultCenter}
         zoom={13}
+        // マップクリックでInfoWindowを閉じる
+        onClick={() => setSelectedPost(null)}
       >
         {filteredPosts.map((post) => {
-  if (!post.location) return null;
+          const position = getPosition(post.location);
+          if (!position) return null;
 
-  // GeoPoint型にも対応するための処理
-  const lat =
-    typeof post.location.lat === "function"
-      ? post.location.lat()
-      : post.location.lat ?? post.location._lat ?? post.location.latitude;
-  const lng =
-    typeof post.location.lng === "function"
-      ? post.location.lng()
-      : post.location.lng ?? post.location._long ?? post.location.longitude;
-
-  if (lat == null || lng == null) return null;
-
-  return (
-    <Marker
-      key={post.id}
-      position={{ lat, lng }}
-      onClick={() => setSelectedPost(post)}
-      icon={{
-        url: getMarkerIcon(post),
-        scaledSize: new window.google.maps.Size(40, 40),
-      }}
-    />
-  );
-})}
+          return (
+            <Marker
+              key={post.id}
+              position={position}
+              onClick={() => setSelectedPost(post)}
+              // 📍 修正点 5: マーカーアイコンのロジックを修正
+              icon={
+                post.tag === '危険情報' && post.riskLevel
+                  ? getMarkerIcon(post.riskLevel)
+                  : undefined // undefinedにするとデフォルトの赤いピンになる
+              }
+            />
+          );
+        })}
 
         {selectedPost && (
           <InfoWindow
-            position={{
-              lat: selectedPost.location.lat,
-              lng: selectedPost.location.lng,
-            }}
+            // 📍 修正点 6: InfoWindowの位置取得もヘルパー関数経由に
+            position={getPosition(selectedPost.location)}
             onCloseClick={() => setSelectedPost(null)}
           >
             <div style={{ maxWidth: "200px" }}>
-              <h4 style={{ margin: 0 }}>{selectedPost.tag}</h4>
-              <p style={{ margin: "4px 0" }}>{selectedPost.message}</p>
+              <h4>{selectedPost.tag}</h4>
+              <p>{selectedPost.message}</p>
               {selectedPost.imageUrl && (
                 <img
                   src={selectedPost.imageUrl}
                   alt="投稿画像"
-                  style={{
-                    width: "100%",
-                    borderRadius: "8px",
-                    marginBottom: "4px",
-                  }}
+                  style={{ width: "100%", borderRadius: "8px" }}
                 />
               )}
               {selectedPost.riskLevel && (
@@ -181,19 +189,8 @@ function PostMap() {
                   ⚠️ {selectedPost.riskLevel}
                 </p>
               )}
-
               <div style={{ textAlign: "center", marginTop: "8px" }}>
-                <button
-                  onClick={() => handleGood(selectedPost.id)}
-                  style={{
-                    backgroundColor: "#ffcc00",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "6px 12px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
+                <button onClick={() => handleGood(selectedPost.id)} >
                   👍 Good ({selectedPost.goodCount || 0})
                 </button>
               </div>
