@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './PostForm.css';
+import './Form.css';
 import { db, storage } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { GeoPoint } from 'firebase/firestore'; // GeoPointをインポート
 import MapModal from './MapModal';
 
 function PostForm() {
@@ -13,7 +14,8 @@ function PostForm() {
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [location, setLocation] = useState(null); // ← 数値形式に変更
+    const [isGettingLocation, setIsGettingLocation] = useState(false); // ★ 1. 現在地取得中のローディングState
+    const [location, setLocation] = useState(null);
     const [showMapModal, setShowMapModal] = useState(false);
     const [riskLevel, setRiskLevel] = useState('');
 
@@ -43,11 +45,47 @@ function PostForm() {
         }
     };
 
+    // ★ 2. 現在地を取得する関数 ---
+    const handleGetCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("お使いのブラウザは位置情報取得に対応していません。");
+            return;
+        }
+
+        setIsGettingLocation(true); // ローディング開始
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setLocation({ lat: latitude, lng: longitude });
+                setIsGettingLocation(false); // ローディング終了
+            },
+            (error) => {
+                let errorMessage = "位置情報の取得に失敗しました。";
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = "位置情報の利用が許可されていません。ブラウザの設定を確認してください。";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = "現在地の特定ができませんでした。";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = "位置情報の取得がタイムアウトしました。";
+                        break;
+                    default:
+                        break;
+                }
+                alert(errorMessage);
+                console.error("Geolocation error: ", error);
+                setIsGettingLocation(false); // ローディング終了
+            }
+        );
+    };
+
     // --- フォーム送信 ---
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // バリデーション
         if (!message || !tag) {
             alert("メッセージとタグは必須です。");
             return;
@@ -60,7 +98,7 @@ function PostForm() {
             alert("位置情報を設定してください。");
             return;
         }
-//
+
         setIsLoading(true);
 
         try {
@@ -76,10 +114,8 @@ function PostForm() {
                 tag,
                 imageUrl,
                 createdAt: serverTimestamp(),
-                location: {
-                    lat: location.lat,
-                    lng: location.lng,
-                },
+                // FirestoreのGeoPoint形式で保存するのがおすすめです
+                location: new GeoPoint(location.lat, location.lng),
                 ...(riskLevel && { riskLevel }),
             };
 
@@ -99,7 +135,7 @@ function PostForm() {
     return (
         <div className="container">
             <form onSubmit={handleSubmit}>
-                {/* メッセージ */}
+                {/* ... (メッセージと画像のJSXは変更なし) ... */}
                 <div className="form-group">
                     <label htmlFor="message">メッセージ</label>
                     <div className="message-box-container">
@@ -136,13 +172,25 @@ function PostForm() {
                 {/* 位置情報 */}
                 <div className="form-group">
                     <label>位置情報</label>
-                    <button
-                        type="button"
-                        className="btn map-btn"
-                        onClick={() => setShowMapModal(true)}
-                    >
-                        地図検索
-                    </button>
+                    {/* ★ 3. ボタンをまとめるコンテナ */}
+                    <div className="location-buttons-container">
+                        <button
+                            type="button"
+                            className="btn map-btn"
+                            onClick={() => setShowMapModal(true)}
+                        >
+                            地図から選択
+                        </button>
+                        {/* ★ 4. 現在地取得ボタンを追加 */}
+                        <button
+                            type="button"
+                            className="btn current-location-btn"
+                            onClick={handleGetCurrentLocation}
+                            disabled={isGettingLocation}
+                        >
+                            {isGettingLocation ? '取得中…' : '現在地を取得'}
+                        </button>
+                    </div>
                     <input
                         type="text"
                         id="location"
@@ -151,10 +199,9 @@ function PostForm() {
                         value={
                             location
                                 ? `緯度: ${location.lat.toFixed(5)}, 経度: ${location.lng.toFixed(5)}`
-                                : '地図から位置を選択してください'
+                                : '地図または現在地から位置を選択してください'
                         }
                     />
-                    {/* 地図モーダル */}
                     {showMapModal && (
                     <MapModal
                         onClose={() => setShowMapModal(false)}
@@ -166,7 +213,7 @@ function PostForm() {
             )}
                 </div>
 
-                {/* タグ */}
+                {/* ... (タグ、危険度、送信ボタンのJSXは変更なし) ... */}
                 <div className="form-group">
                     <label htmlFor="tag">タグ</label>
                     <select id="tag" name="tag" value={tag} onChange={handleTagChange}>
@@ -179,7 +226,6 @@ function PostForm() {
                     </select>
                 </div>
 
-                {/* 危険度 */}
                 {tag === '危険情報' && (
                     <div className="form-group">
                         <label htmlFor="riskLevel">危険度</label>
@@ -198,7 +244,6 @@ function PostForm() {
                     </div>
                 )}
 
-                {/* 送信ボタン */}
                 <div className="form-group">
                     <button
                         type="submit"
@@ -209,7 +254,6 @@ function PostForm() {
                     </button>
                 </div>
             </form>
-
         </div>
     );
 }
