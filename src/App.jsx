@@ -16,14 +16,14 @@ function App() {
         <strong>ページ移動テスト:</strong>
         <Link to="/post" style={{ marginLeft: '15px' }}>投稿フォーム</Link>
         <Link to="/post/1" style={{ marginLeft: '15px' }}>投稿詳細</Link>
-        <Link to="/map" style={{ marginLeft: '15px' }}>情報マップ</Link>
+        <Link to="/maps" style={{ marginLeft: '15px' }}>情報マップ</Link>
       </nav>
 
       {/* URLに応じて表示するコンポーネントを切り替える設定 */}
       <Routes>
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/1" element={<PostDetail />} />
-        <Route path="/map" element={<InfoMap />} />
+        <Route path="/maps" element={<InfoMap />} />
       </Routes>
     </div>
   );
