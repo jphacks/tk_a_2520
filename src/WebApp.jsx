@@ -5,7 +5,7 @@ import PostDetail from './pages/PostDetail';
 import Form from './pages/Form';
 import './WebApp.css'; // ← ここでCSSを読み込みます
 
-function App() {
+function WebApp() {
   return (
     <div>
       {/* 🌿 ページ移動ナビ */}
@@ -28,4 +28,4 @@ function App() {
   );
 }
 
-export default App;
+export default WebApp;
