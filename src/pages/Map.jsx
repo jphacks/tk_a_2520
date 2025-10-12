@@ -22,22 +22,30 @@ function PostMap() {
 
   // ✅ handleGood関数をコンポーネント内に移動
   const handleGood = async (postId) => {
-    try {
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        goodCount: increment(1)
-      });
+  try {
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, {
+      goodCount: increment(1),
+    });
 
-      // ローカルの状態も更新
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === postId ? { ...p, goodCount: (p.goodCount || 0) + 1 } : p
-        )
-      );
-    } catch (error) {
-      console.error("いいねの更新エラー:", error);
-    }
-  };
+    // 🔹 posts の更新
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, goodCount: (p.goodCount || 0) + 1 } : p
+      )
+    );
+
+    // 🔹 selectedPost の更新も追加！
+    setSelectedPost((prev) =>
+      prev && prev.id === postId
+        ? { ...prev, goodCount: (prev.goodCount || 0) + 1 }
+        : prev
+    );
+  } catch (error) {
+    console.error("いいねの更新エラー:", error);
+  }
+};
+
 
   const tags = ["すべて", "風景", "危険情報", "グルメ", "豆知識"];
 
