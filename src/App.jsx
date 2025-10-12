@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import InfoMap from './pages/PostMap'; // pagesフォルダからインポート
+import PostMap from './pages/PostMap'; // pagesフォルダからインポート
 import PostDetail from './pages/PostDetail'; // pagesフォルダからインポート
 import PostForm from './pages/PostForm'; // pagesフォルダからインポート
 // PostFormコンポーネントのファイルがまだないので、仮で作成します
