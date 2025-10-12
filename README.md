@@ -71,5 +71,5 @@ Michikusa GOは、旅行者が旅先での「小さな発見」を共有でき�
 * 1. 地図マーカーの色分けシステム：src/pages/Map.jsx (Line 10-39)
   2. ユーザーの興味に着目したタグ分類：src/pages/Map.jsx（Line 115-144）
   3. ユーザーの現在地を取得してフォームの位置情報に反映する処理：
-     src/pages/Form.jsx（Line 73~116、191~195）
+     src/pages/Form.jsx（Line 73-16、191-195）
   
