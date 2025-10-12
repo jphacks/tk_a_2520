@@ -8,9 +8,9 @@ import './WebApp.css';
 function App() {
   return (
     <div>
-      {/* 🌿 ページ移動ナビ */}
+      {/* ページ移動 */}
       <nav className="nav-bar">
-        <div className="nav-title">🌼 MichikusaGO</div>
+        <div className="nav-title">MichikusaGO</div>
         <div className="nav-links">
           <Link to="/postform" className="nav-btn pink">投稿フォーム</Link>
           {/*<Link to="/post/1" className="nav-btn blue">投稿詳細</Link>*/}
