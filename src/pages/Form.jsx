@@ -8,7 +8,7 @@ import { GeoPoint } from 'firebase/firestore'; // GeoPointをインポート
 import MapModal from './MapModal';
 
 function PostForm() {
-    // --- State定義 ---
+    // State定義
     const [message, setMessage] = useState('');
     const [tag, setTag] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
@@ -21,7 +21,7 @@ function PostForm() {
 
     const navigate = useNavigate();
 
-    // --- 画像アップロード ---
+    //画像アップロード
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -36,7 +36,7 @@ function PostForm() {
         document.getElementById('imageUpload').value = '';
     };
 
-    // --- タグ変更 ---
+    //タグ変更
     const handleTagChange = (event) => {
         const newTag = event.target.value;
         setTag(newTag);
@@ -45,7 +45,7 @@ function PostForm() {
         }
     };
 
-    // ★ 2. 現在地を取得する関数 ---
+    // 現在地を取得する関数 
     const handleGetCurrentLocation = () => {
         if (!navigator.geolocation) {
             alert("お使いのブラウザは位置情報取得に対応していません。");
@@ -82,7 +82,7 @@ function PostForm() {
         );
     };
 
-    // --- フォーム送信 ---
+    //フォーム送信 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -144,7 +144,7 @@ function PostForm() {
     return (
         <div className="container">
             <form onSubmit={handleSubmit}>
-                {/* ... (メッセージと画像のJSXは変更なし) ... */}
+               
                 <div className="form-group">
                     <label htmlFor="message">メッセージ</label>
                     <div className="message-box-container">
@@ -181,7 +181,7 @@ function PostForm() {
                 {/* 位置情報 */}
                 <div className="form-group">
                     <label>位置情報</label>
-                    {/* ★ 3. ボタンをまとめるコンテナ */}
+                    {/*ボタンをまとめるコンテナ */}
                     <div className="location-buttons-container">
                         <button
                             type="button"
@@ -190,7 +190,7 @@ function PostForm() {
                         >
                             地図から選択
                         </button>
-                        {/* ★ 4. 現在地取得ボタンを追加 */}
+                        {/*現在地取得ボタンを追加 */}
                         <button
                             type="button"
                             className="btn current-location-btn"
@@ -222,7 +222,6 @@ function PostForm() {
             )}
                 </div>
 
-                {/* ... (タグ、危険度、送信ボタンのJSXは変更なし) ... */}
                 <div className="form-group">
                     <label htmlFor="tag">タグ</label>
                     <select id="tag" name="tag" value={tag} onChange={handleTagChange}>
