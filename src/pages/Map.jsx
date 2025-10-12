@@ -3,7 +3,7 @@ import { GoogleMap, Marker, InfoWindow, Circle } from '@react-google-maps/api';
 import { collection, getDocs, orderBy, query, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-const containerStyle = { width: '100%', height: '90vh', position: 'relative' }; // ✅ position: 'relative' を追加
+const containerStyle = { width: '100%', height: '90vh', position: 'relative' }; 
 const defaultCenter = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 
 const getMarkerIcon = (riskLevel) => {
