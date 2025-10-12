@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { GoogleMap, Marker, InfoWindow, Circle } from '@react-google-maps/api';
-import { collection, getDocs, orderBy, query, doc, updateDoc, increment } from 'firebase/firestore'; // ←ここに追加
+import { collection, getDocs, orderBy, query, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-const containerStyle = {
-  width: '100%',
-  height: '90vh',
-};
-
+const containerStyle = { width: '100%', height: '90vh' };
 const defaultCenter = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 
 function PostMap() {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedTag, setSelectedTag] = useState("すべて");
-  const [currentPosition, setCurrentPosition] = useState(null); // ✅ 現在地
+  const [currentPosition, setCurrentPosition] = useState(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [loadingLocation, setLoadingLocation] = useState(false); // ✅ ローディング状態追加
 
   const handleGood = async (postId) => {
     try {
@@ -38,7 +35,7 @@ function PostMap() {
 
   const tags = ["すべて", "風景", "危険情報", "グルメ", "豆知識"];
 
-  // Firestoreから投稿を取得
+  // Firestoreから投稿取得
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -56,24 +53,31 @@ function PostMap() {
     fetchPosts();
   }, []);
 
-  // ✅ 現在地を取得
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          const position = { lat: latitude, lng: longitude };
-          setCurrentPosition(position);
-          setMapCenter(position); // 地図中心を現在地へ
-        },
-        (err) => {
-          console.warn("位置情報取得失敗:", err);
-        }
-      );
+  // ✅ 現在地取得処理（ボタンから呼び出す）
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("このブラウザでは位置情報が利用できません。");
+      return;
     }
-  }, []);
 
-  // ✅ 指定距離（例: 半径5km）以内の投稿だけを表示
+    setLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const position = { lat: latitude, lng: longitude };
+        setCurrentPosition(position);
+        setMapCenter(position);
+        setLoadingLocation(false);
+      },
+      (err) => {
+        console.warn("位置情報取得失敗:", err);
+        alert("位置情報を取得できませんでした。許可を確認してください。");
+        setLoadingLocation(false);
+      }
+    );
+  };
+
+  // ✅ 距離フィルタ
   const distance = (loc1, loc2) => {
     const R = 6371; // 地球半径(km)
     const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
@@ -89,14 +93,14 @@ function PostMap() {
   const filteredPosts = posts.filter((post) => {
     if (selectedTag !== "すべて" && post.tag !== selectedTag) return false;
     if (currentPosition && post.location) {
-      return distance(currentPosition, post.location) <= 5; // ✅ 半径5km以内
+      return distance(currentPosition, post.location) <= 5;
     }
     return true;
   });
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-      {/* タグ選択ボタン */}
+      {/* 🔹タグ＆ボタンエリア */}
       <div style={{ padding: "10px", textAlign: "center" }}>
         {tags.map((tag) => (
           <button
@@ -118,6 +122,23 @@ function PostMap() {
           </button>
         ))}
 
+        {/* ✅ 現在地を取得するボタン */}
+        <button
+          onClick={handleGetCurrentLocation}
+          disabled={loadingLocation}
+          style={{
+            marginLeft: "10px",
+            padding: "8px 16px",
+            backgroundColor: loadingLocation ? "#aaa" : "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            cursor: loadingLocation ? "default" : "pointer",
+          }}
+        >
+          {loadingLocation ? "取得中..." : "📍 現在地を取得"}
+        </button>
+
         {/* ✅ 現在地に戻るボタン */}
         {currentPosition && (
           <button
@@ -125,14 +146,14 @@ function PostMap() {
             style={{
               marginLeft: "10px",
               padding: "8px 16px",
-              backgroundColor: "#28a745",
+              backgroundColor: "#17a2b8",
               color: "white",
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
             }}
           >
-            📍 現在地へ戻る
+            🗺️ 現在地へ移動
           </button>
         )}
       </div>
@@ -145,7 +166,7 @@ function PostMap() {
             <Marker position={currentPosition} label="現在地" />
             <Circle
               center={currentPosition}
-              radius={5000} // 5km円
+              radius={5000}
               options={{
                 fillColor: "#007bff33",
                 strokeColor: "#007bff",
