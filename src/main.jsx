@@ -4,8 +4,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { LoadScript } from '@react-google-maps/api'; // LoadScriptをインポート
-import App from './App';
-import './App.css';
+import App from './WebApp';
+import './WebApp.css';
 
 // アプリケーション全体で使用するライブラリを定義（必要に応じて変更）
 const libraries = ["maps", "places"];
@@ -19,7 +19,7 @@ root.render(
       libraries={libraries}
     >
       <BrowserRouter>
-        <App />
+        <WebApp />
       </BrowserRouter>
     </LoadScript>
   </React.StrictMode>
