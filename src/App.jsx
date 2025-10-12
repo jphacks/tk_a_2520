@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import PostMap from './pages/PostMap'; // pagesフォルダからインポート
+import Map from './pages/Map'; // pagesフォルダからインポート
 import PostDetail from './pages/PostDetail'; // pagesフォルダからインポート
 import PostForm from './pages/PostForm'; // pagesフォルダからインポート
 // PostFormコンポーネントのファイルがまだないので、仮で作成します
@@ -16,14 +16,14 @@ function App() {
         <strong>ページ移動テスト:</strong>
         <Link to="/post" style={{ marginLeft: '15px' }}>投稿フォーム</Link>
         <Link to="/post/1" style={{ marginLeft: '15px' }}>投稿詳細</Link>
-        <Link to="/maps" style={{ marginLeft: '15px' }}>情報マップ</Link>
+        <Link to="/mapinfo" style={{ marginLeft: '15px' }}>情報マップ</Link>
       </nav>
 
       {/* URLに応じて表示するコンポーネントを切り替える設定 */}
       <Routes>
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/1" element={<PostDetail />} />
-        <Route path="/maps" element={<PostMap />} />
+        <Route path="/mapinfo" element={<Map />} />
       </Routes>
     </div>
   );

@@ -86,7 +86,7 @@ function PostForm() {
             await addDoc(collection(db, "posts"), postData);
 
             alert('投稿が完了しました！');
-            navigate('/maps');
+            navigate('/mapinfo');
 
         } catch (error) {
             console.error("投稿中に詳細なエラーが発生しました: ", error);
