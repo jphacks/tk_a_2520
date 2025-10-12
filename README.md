@@ -1,6 +1,7 @@
 # Michikusa GO
 
 [![IMAGE ALT TEXT HERE](src/assets/IMG_2392.png)](https://youtu.be/C37NdSqWU0k)
+画像をタップするとデモ動画が表示されます。
 
 ## 製品概要
 Michikusa GOは、旅行者が旅先での「小さな発見」を共有できるスマホ向けアプリです。特に目的地までの道中や街歩きなど「道草」をより楽しくすることを目指しています。
