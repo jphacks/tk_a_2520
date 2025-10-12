@@ -12,7 +12,8 @@ function PostMap() {
   const [selectedTag, setSelectedTag] = useState("すべて");
   const [currentPosition, setCurrentPosition] = useState(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [loadingLocation, setLoadingLocation] = useState(false); // ✅ ローディング状態追加
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [zoom, setZoom] = useState(13); // ✅ ズームレベルを管理するstate
 
   const handleGood = async (postId) => {
     try {
@@ -44,8 +45,6 @@ function PostMap() {
         const data = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-
-          
         }));
         setPosts(data);
       } catch (error) {
@@ -55,7 +54,7 @@ function PostMap() {
     fetchPosts();
   }, []);
 
-  // ✅ 現在地取得処理（ボタンから呼び出す）
+  // 現在地取得処理
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert("このブラウザでは位置情報が利用できません。");
@@ -69,6 +68,7 @@ function PostMap() {
         const position = { lat: latitude, lng: longitude };
         setCurrentPosition(position);
         setMapCenter(position);
+        setZoom(15); // ✅ 現在地取得時にズームレベルを15に設定
         setLoadingLocation(false);
       },
       (err) => {
@@ -79,7 +79,7 @@ function PostMap() {
     );
   };
 
-  // ✅ 距離フィルタ
+  // 距離計算
   const distance = (loc1, loc2) => {
     const R = 6371; // 地球半径(km)
     const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
@@ -95,14 +95,15 @@ function PostMap() {
   const filteredPosts = posts.filter((post) => {
     if (selectedTag !== "すべて" && post.tag !== selectedTag) return false;
     if (currentPosition && post.location) {
-      return distance(currentPosition, post.location) <= 5;
+      // ✅ 徒歩圏内（半径1km）にフィルタリング
+      return distance(currentPosition, post.location) <= 1;
     }
     return true;
   });
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-      {/* 🔹タグ＆ボタンエリア */}
+      {/* タグ＆ボタンエリア */}
       <div style={{ padding: "10px", textAlign: "center" }}>
         {tags.map((tag) => (
           <button
@@ -124,7 +125,6 @@ function PostMap() {
           </button>
         ))}
 
-        {/* ✅ 現在地を取得するボタン */}
         <button
           onClick={handleGetCurrentLocation}
           disabled={loadingLocation}
@@ -141,10 +141,12 @@ function PostMap() {
           {loadingLocation ? "取得中..." : "📍 現在地を取得"}
         </button>
 
-        {/* ✅ 現在地に戻るボタン */}
         {currentPosition && (
           <button
-            onClick={() => setMapCenter(currentPosition)}
+            onClick={() => {
+              setMapCenter(currentPosition);
+              setZoom(15); // ✅ 現在地へ移動する際もズーム
+            }}
             style={{
               marginLeft: "10px",
               padding: "8px 16px",
@@ -161,14 +163,29 @@ function PostMap() {
       </div>
 
       {/* 地図 */}
-      <GoogleMap mapContainerStyle={containerStyle} center={mapCenter} zoom={13}>
-        {/* ✅ 現在地マーカー */}
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={mapCenter}
+        zoom={zoom} // ✅ stateでズームを制御
+      >
+        {/* ✅ 現在地マーカーと範囲サークル */}
         {currentPosition && (
           <>
-            <Marker position={currentPosition} label="現在地" />
+            {/* 現在地を示す青い点 */}
             <Circle
               center={currentPosition}
-              radius={5000}
+              radius={25} // 点の大きさ
+              options={{
+                fillColor: "#4285F4",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 2,
+              }}
+            />
+            {/* 徒歩圏内(1km)の範囲を示す円 */}
+            <Circle
+              center={currentPosition}
+              radius={1000} // ✅ 半径1km
               options={{
                 fillColor: "#007bff33",
                 strokeColor: "#007bff",

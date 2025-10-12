@@ -12,7 +12,7 @@ body {
 
 /* カードコンテナ */
 .container {
-  max-width: 640px;
+  max-width: 540px;
   margin: 40px auto;
   background-color: #ffffff;
   padding: 20px;
