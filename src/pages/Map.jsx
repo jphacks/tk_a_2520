@@ -48,7 +48,29 @@ function PostMap() {
 
 
   const tags = ["すべて", "風景", "危険情報", "グルメ", "豆知識"];
-
+  const getMarkerIcon = (post) => {
+    if (post.tag === "危険情報") {
+      switch (post.riskLevel) {
+        case "危険エリア":
+          return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+        case "スリ多発地域":
+          return "http://maps.google.com/mapfiles/ms/icons/orange-dot.png";
+        case "交通事故注意":
+          return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+        case "安全ルート":
+          return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+        default:
+          return "http://maps.google.com/mapfiles/ms/icons/purple-dot.png";
+      }
+    } else if (post.tag === "風景") {
+      return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+    } else if (post.tag === "グルメ") {
+      return "http://maps.google.com/mapfiles/ms/icons/pink-dot.png";
+    } else if (post.tag === "豆知識") {
+      return "http://maps.google.com/mapfiles/ms/icons/purple-dot.png";
+    }
+    return "http://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
+  };
   // Firestoreから投稿を取得
   useEffect(() => {
     const fetchPosts = async () => {
@@ -114,6 +136,10 @@ function PostMap() {
                 lng: post.location.lng,
               }}
               onClick={() => setSelectedPost(post)}
+              icon={{
+                url: getMarkerIcon(post),
+                scaledSize: new window.google.maps.Size(40, 40),
+            }}
             />
           )
         ))}
