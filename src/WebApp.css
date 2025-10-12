@@ -1,7 +1,3 @@
-/* ===============================
-   🌿 みちくさ風ナビゲーションスタイル
-   =============================== */
-
 .nav-bar {
   background: linear-gradient(90deg, #c3f0ca, #bde0fe);
   padding: 14px 20px;
@@ -23,7 +19,7 @@
   margin-bottom: 10px;
 }
 
-/* ボタンリンクエリア */
+/* ボタンリンク */
 .nav-links {
   display: flex;
   gap: 14px;
@@ -44,7 +40,7 @@
   letter-spacing: 0.5px;
 }
 
-/* カラーバリエーション */
+/* カラー*/
 .nav-btn.pink {
   background-color: #ffafcc;
 }
@@ -59,14 +55,14 @@
   font-weight: 700;
 }
 
-/* ホバー時の浮遊アニメーション */
+/* アニメーション */
 .nav-btn:hover {
   transform: translateY(-3px) scale(1.05);
   box-shadow: 0 6px 14px rgba(0,0,0,0.2);
   filter: brightness(1.05);
 }
 
-/* ふわっと登場アニメーション */
+/* アニメーション */
 @keyframes fadeIn {
   from {
     opacity: 0;
