@@ -15,57 +15,35 @@ const defaultCenter = {
   lng: 139.767125,
 };
 
-// 📍 追加: 危険度に応じたマーカーアイコンを返す関数
+// 📍「危険情報」タグ専用のマーカーアイコンを返す関数
 const getMarkerIcon = (riskLevel) => {
-  let color = 'red'; // デフォルトは赤（危険エリア）
+  let color = 'red'; // デフォルトは赤
 
   switch (riskLevel) {
     case '危険エリア':
-      color = 'red'; // 赤
+      color = 'red';
       break;
     case 'スリ多発地域':
-      color = 'orange'; // オレンジ
+      color = 'orange';
       break;
     case '交通事故注意':
-      color = 'yellow'; // 黄色
+      color = 'yellow';
       break;
     case '安全ルート':
-      color = 'green'; // 緑
+      color = 'green';
       break;
     default:
-      color = 'gray'; // 未分類の危険情報があればグレーなど
+      color = 'grey'; // 未分類の危険情報があればグレーなど
   }
 
-  // Google MapsのデフォルトマーカーのURLを色指定で生成
+  // 📍 (改善) 正しいURL形式に修正
   return {
     url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
-    scaledSize: new window.google.maps.Size(32, 32), // サイズ調整（任意）
+    scaledSize: new window.google.maps.Size(32, 32),
   };
 };
 
-// 📍 追加: その他のタグのマーカーアイコン
-const getDefaultMarkerIcon = (tag) => {
-    let color = 'blue'; // デフォルトは青
-
-    switch (tag) {
-        case '風景':
-            color = 'blue';
-            break;
-        case 'グルメ':
-            color = 'purple';
-            break;
-        case '豆知識':
-            color = 'lightblue';
-            break;
-        default:
-            color = 'blue'; // 未分類のタグは青
-    }
-    return {
-        url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
-        scaledSize: new window.google.maps.Size(32, 32),
-    };
-};
-
+// 🗑️ getDefaultMarkerIcon 関数は不要なので削除しました
 
 function PostMap() {
   const [posts, setPosts] = useState([]);
@@ -157,11 +135,11 @@ function PostMap() {
                 lng: post.location.lng,
               }}
               onClick={() => setSelectedPost(post)}
-              // 📍 変更: ここでアイコンを動的に設定
+              // 📍 変更: 「危険情報」の場合のみiconを指定。それ以外はデフォルトの赤いピン。
               icon={
                 post.tag === '危険情報' && post.riskLevel
                   ? getMarkerIcon(post.riskLevel)
-                  : getDefaultMarkerIcon(post.tag) // その他のタグのアイコンも設定
+                  : undefined
               }
             />
           )
