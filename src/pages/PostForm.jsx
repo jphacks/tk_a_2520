@@ -117,7 +117,7 @@ function PostForm() {
                             style={{ display: 'none' }}
                             onChange={handleImageChange}
                         />
-                        {/*<label htmlFor="imageUpload" className="btn image-btn">＋画像</label>*/}
+                        <label htmlFor="imageUpload" className="btn image-btn">＋画像</label>
                     </div>
                     {imagePreview && (
                         <div id="imagePreviewContainer">
@@ -154,6 +154,16 @@ function PostForm() {
                                 : '地図から位置を選択してください'
                         }
                     />
+                    {/* 地図モーダル */}
+                    {showMapModal && (
+                    <MapModal
+                        onClose={() => setShowMapModal(false)}
+                        onSelectLocation={(lat, lng) => {
+                            setLocation({ lat, lng });
+                            setShowMapModal(false);
+                        }}
+                    />
+            )}
                 </div>
 
                 {/* タグ */}
@@ -200,16 +210,6 @@ function PostForm() {
                 </div>
             </form>
 
-            {/* 地図モーダル */}
-            {showMapModal && (
-                <MapModal
-                    onClose={() => setShowMapModal(false)}
-                    onSelectLocation={(lat, lng) => {
-                        setLocation({ lat, lng });
-                        setShowMapModal(false);
-                    }}
-                />
-            )}
         </div>
     );
 }
