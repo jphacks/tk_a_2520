@@ -15,63 +15,88 @@ const defaultCenter = {
   lng: 139.767125,
 };
 
+// 📍 追加: 危険度に応じたマーカーアイコンを返す関数
+const getMarkerIcon = (riskLevel) => {
+  let color = 'red'; // デフォルトは赤（危険エリア）
+
+  switch (riskLevel) {
+    case '危険エリア':
+      color = 'red'; // 赤
+      break;
+    case 'スリ多発地域':
+      color = 'orange'; // オレンジ
+      break;
+    case '交通事故注意':
+      color = 'yellow'; // 黄色
+      break;
+    case '安全ルート':
+      color = 'green'; // 緑
+      break;
+    default:
+      color = 'gray'; // 未分類の危険情報があればグレーなど
+  }
+
+  // Google MapsのデフォルトマーカーのURLを色指定で生成
+  return {
+    url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+    scaledSize: new window.google.maps.Size(32, 32), // サイズ調整（任意）
+  };
+};
+
+// 📍 追加: その他のタグのマーカーアイコン
+const getDefaultMarkerIcon = (tag) => {
+    let color = 'blue'; // デフォルトは青
+
+    switch (tag) {
+        case '風景':
+            color = 'blue';
+            break;
+        case 'グルメ':
+            color = 'purple';
+            break;
+        case '豆知識':
+            color = 'lightblue';
+            break;
+        default:
+            color = 'blue'; // 未分類のタグは青
+    }
+    return {
+        url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+        scaledSize: new window.google.maps.Size(32, 32),
+    };
+};
+
+
 function PostMap() {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedTag, setSelectedTag] = useState("すべて");
 
-  // ✅ handleGood関数をコンポーネント内に移動
   const handleGood = async (postId) => {
-  try {
-    const postRef = doc(db, "posts", postId);
-    await updateDoc(postRef, {
-      goodCount: increment(1),
-    });
+    try {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        goodCount: increment(1),
+      });
 
-    // 🔹 posts の更新
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId ? { ...p, goodCount: (p.goodCount || 0) + 1 } : p
-      )
-    );
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, goodCount: (p.goodCount || 0) + 1 } : p
+        )
+      );
 
-    // 🔹 selectedPost の更新も追加！
-    setSelectedPost((prev) =>
-      prev && prev.id === postId
-        ? { ...prev, goodCount: (prev.goodCount || 0) + 1 }
-        : prev
-    );
-  } catch (error) {
-    console.error("いいねの更新エラー:", error);
-  }
-};
-
+      setSelectedPost((prev) =>
+        prev && prev.id === postId
+          ? { ...prev, goodCount: (prev.goodCount || 0) + 1 }
+          : prev
+      );
+    } catch (error) {
+      console.error("いいねの更新エラー:", error);
+    }
+  };
 
   const tags = ["すべて", "風景", "危険情報", "グルメ", "豆知識"];
-  const getMarkerIcon = (post) => {
-    if (post.tag === "危険情報") {
-      switch (post.riskLevel) {
-        case "危険エリア":
-          return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
-        case "スリ多発地域":
-          return "http://maps.google.com/mapfiles/ms/icons/orange-dot.png";
-        case "交通事故注意":
-          return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
-        case "安全ルート":
-          return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
-        default:
-          return "http://maps.google.com/mapfiles/ms/icons/purple-dot.png";
-      }
-    } else if (post.tag === "風景") {
-      return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
-    } else if (post.tag === "グルメ") {
-      return "http://maps.google.com/mapfiles/ms/icons/pink-dot.png";
-    } else if (post.tag === "豆知識") {
-      return "http://maps.google.com/mapfiles/ms/icons/purple-dot.png";
-    }
-    return "http://maps.google.com/mapfiles/ms/icons/ltblue-dot.png";
-  };
-  // Firestoreから投稿を取得
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -89,7 +114,6 @@ function PostMap() {
     fetchPosts();
   }, []);
 
-  // タグでフィルタリング
   const filteredPosts =
     selectedTag === "すべて"
       ? posts
@@ -97,7 +121,6 @@ function PostMap() {
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-      {/* 🔹タグボタンエリア */}
       <div style={{ padding: "10px", textAlign: "center" }}>
         {tags.map((tag) => (
           <button
@@ -120,13 +143,11 @@ function PostMap() {
         ))}
       </div>
 
-      {/* 🔹地図エリア */}
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
         zoom={13}
       >
-        {/* 投稿マーカー */}
         {filteredPosts.map((post) => (
           post.location && (
             <Marker
@@ -136,15 +157,16 @@ function PostMap() {
                 lng: post.location.lng,
               }}
               onClick={() => setSelectedPost(post)}
-              icon={{
-                url: getMarkerIcon(post),
-                scaledSize: new window.google.maps.Size(40, 40),
-            }}
+              // 📍 変更: ここでアイコンを動的に設定
+              icon={
+                post.tag === '危険情報' && post.riskLevel
+                  ? getMarkerIcon(post.riskLevel)
+                  : getDefaultMarkerIcon(post.tag) // その他のタグのアイコンも設定
+              }
             />
           )
         ))}
 
-        {/* InfoWindow */}
         {selectedPost && (
           <InfoWindow
             position={{
@@ -173,7 +195,6 @@ function PostMap() {
                 </p>
               )}
 
-              {/* 👍 goodボタン */}
               <div style={{ textAlign: "center", marginTop: "8px" }}>
                 <button
                   onClick={() => handleGood(selectedPost.id)}
@@ -192,7 +213,6 @@ function PostMap() {
             </div>
           </InfoWindow>
         )}
-
       </GoogleMap>
     </div>
   );
