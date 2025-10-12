@@ -1,0 +1,192 @@
+/* ===============================
+   ポップでかわいいフォームデザイン
+   =============================== */
+
+/* 背景とフォント */
+body {
+  font-family: "Nunito", "Noto Sans JP", sans-serif;
+  background: linear-gradient(135deg, #ffe5ec, #e3f2fd);
+  margin: 0;
+  padding: 20px;
+  color: #444;
+  transition: background 0.3s ease;
+}
+
+/* カードコンテナ */
+.container {
+  max-width: 640px;
+  margin: 40px auto;
+  background-color: #ffffff;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3);
+  transition: all 0.3s ease;
+}
+
+.container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(255, 182, 193, 0.4);
+}
+
+/* フォーム要素 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* 入力・選択フォーム */
+textarea,
+input[type="text"],
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #ffe5ec;
+  border-radius: 14px;
+  background-color: #fffafc;
+  font-size: 16px;
+  transition: all 0.25s ease;
+}
+
+textarea {
+  height: 160px;
+  resize: vertical;
+}
+
+textarea:focus,
+input[type="text"]:focus,
+select:focus {
+  border-color: #ffafcc;
+  box-shadow: 0 0 6px rgba(255, 175, 204, 0.5);
+  outline: none;
+}
+
+/* 読み取り専用 */
+input[readonly] {
+  background-color: #f1f3f6;
+}
+
+/* ボタン */
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #a2d2ff; /* 水色 */
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #bde0fe;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(162, 210, 255, 0.4);
+}
+
+/* 削除ボタン */
+.clear-btn {
+  background-color: #ffb3b3;
+  margin-top: 10px;
+  display: block;
+  width: fit-content;
+}
+
+.clear-btn:hover {
+  background-color: #ff8e8e;
+  transform: scale(1.05);
+}
+
+/* 送信ボタン */
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #ffafcc;
+}
+
+.submit-btn:hover {
+  background-color: #ff8fab;
+}
+
+/* プレビュー画像 */
+#imagePreviewContainer img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 15px;
+  border-radius: 12px;
+  border: 1px solid #f9c5d1;
+  box-shadow: 0 6px 14px rgba(255, 175, 204, 0.3);
+}
+
+/* モーダル背景 */
+.map-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 192, 203, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* モーダル本体 */
+.map-modal {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 6px 24px rgba(255, 175, 204, 0.4);
+  animation: popIn 0.3s ease;
+}
+
+/* モーダル登場アニメーション */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.map-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.location-btn {
+  background-color: #bde0fe;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 50px;
+  transition: background-color 0.2s ease;
+}
+
+.location-btn:hover {
+  background-color: #bde0fe;
+}
+
+/* エラー表示 */
+.error-message {
+  color: #e63946;
+  font-size: 0.9rem;
+  margin-top: 0.4rem;
+}
