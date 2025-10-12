@@ -1,28 +1,18 @@
+//import React, { useState, useEffect, useRef } from 'react';
+import './InfoMap.css';
 // src/pages/InfoMap.jsx
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
-
-const containerStyle = {
-  width: '100%',
-  height: '90vh'
-};
-
-const center = {
-  lat: 35.681236,
-  lng: 139.767125
-};
 
 function InfoMap() {
   const [posts, setPosts] = useState([]);
-  const [selectedPost, setSelectedPost] = useState(null);
 
-  // Firestoreから投稿を取得
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "posts"));
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
         const data = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -32,50 +22,48 @@ function InfoMap() {
         console.error("データ取得エラー:", error);
       }
     };
+
     fetchPosts();
   }, []);
 
   return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={center}
-      zoom={13}
-    >
-      {/* 投稿データをマーカーとして表示 */}
-      {posts.map(post => (
-        <Marker
-          key={post.id}
-          position={{ lat: post.location.lat, lng: post.location.lng }}
-          onClick={() => setSelectedPost(post)}
-        />
-      ))}
-
-      {/* マーカークリックで詳細表示 */}
-      {selectedPost && (
-        <InfoWindow
-          position={{
-            lat: selectedPost.location.lat,
-            lng: selectedPost.location.lng
-          }}
-          onCloseClick={() => setSelectedPost(null)}
-        >
-          <div>
-            <h4>{selectedPost.tag}</h4>
-            <p>{selectedPost.message}</p>
-            {selectedPost.imageUrl && (
+    <div style={{ padding: '20px' }}>
+      <h2>投稿一覧</h2>
+      {posts.length === 0 ? (
+        <p>投稿がまだありません。</p>
+      ) : (
+        posts.map(post => (
+          <div
+            key={post.id}
+            style={{
+              border: '1px solid #ccc',
+              borderRadius: '10px',
+              padding: '10px',
+              marginBottom: '10px',
+              backgroundColor: '#f9f9f9'
+            }}
+          >
+            <p><strong>タグ:</strong> {post.tag}</p>
+            <p><strong>メッセージ:</strong> {post.message}</p>
+            {post.imageUrl && (
               <img
-                src={selectedPost.imageUrl}
+                src={post.imageUrl}
                 alt="投稿画像"
                 style={{ width: "150px", borderRadius: "8px" }}
               />
             )}
-            {selectedPost.riskLevel && (
-              <p>⚠️ {selectedPost.riskLevel}</p>
+            {post.riskLevel && (
+              <p><strong>危険度:</strong> ⚠️ {post.riskLevel}</p>
+            )}
+            {post.location && (
+              <p>
+                <strong>位置情報:</strong> 緯度 {post.location.lat.toFixed(5)}, 経度 {post.location.lng.toFixed(5)}
+              </p>
             )}
           </div>
-        </InfoWindow>
+        ))
       )}
-    </GoogleMap>
+    </div>
   );
 }
 
