@@ -1,4 +1,4 @@
-// src/pages/InfoMap.jsx
+// src/pages/PostMap.jsx
 import React, { useEffect, useState } from 'react';
 import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
@@ -17,6 +17,9 @@ const defaultCenter = {
 function PostMap() {
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedTag, setSelectedTag] = useState("すべて");
+
+  const tags = ["すべて", "風景", "危険情報", "グルメ", "豆知識"];
 
   // Firestoreから投稿を取得
   useEffect(() => {
@@ -36,15 +39,45 @@ function PostMap() {
     fetchPosts();
   }, []);
 
+  // タグでフィルタリング
+  const filteredPosts =
+    selectedTag === "すべて"
+      ? posts
+      : posts.filter((post) => post.tag === selectedTag);
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
+      {/* 🔹タグボタンエリア */}
+      <div style={{ padding: "10px", textAlign: "center" }}>
+        {tags.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => setSelectedTag(tag)}
+            style={{
+              margin: "5px",
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: selectedTag === tag ? "#007bff" : "#e0e0e0",
+              color: selectedTag === tag ? "white" : "black",
+              fontWeight: selectedTag === tag ? "bold" : "normal",
+              transition: "0.2s",
+            }}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+
+      {/* 🔹地図エリア */}
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
         zoom={13}
       >
-        {/* 🔹投稿をMarkerとして表示 */}
-        {posts.map((post) => (
+        {/* 投稿マーカー */}
+        {filteredPosts.map((post) => (
           post.location && (
             <Marker
               key={post.id}
@@ -57,7 +90,7 @@ function PostMap() {
           )
         ))}
 
-        {/* 🔹クリックしたマーカーの詳細をInfoWindowで表示 */}
+        {/* InfoWindow */}
         {selectedPost && (
           <InfoWindow
             position={{
