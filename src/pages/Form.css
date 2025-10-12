@@ -7,7 +7,7 @@ body {
   font-family: "Nunito", "Noto Sans JP", sans-serif;
   background: linear-gradient(135deg, #ffe5ec, #e3f2fd);
   margin: 0;
-  padding: 20px;
+  padding: 0px;
   color: #444;
   transition: background 0.3s ease;
 }

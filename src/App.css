@@ -1,57 +1,79 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* ===============================
+   🌿 みちくさ風ナビゲーションスタイル
+   =============================== */
+
+.nav-bar {
+  background: linear-gradient(90deg, #c3f0ca, #bde0fe);
+  padding: 14px 20px;
+  border-radius: 16px;
+  margin: 20px auto;
+  max-width: 800px;
+  box-shadow: 0 6px 16px rgba(160, 210, 180, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.6s ease;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.nav-title {
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 10px;
 }
 
-@keyframes logo-spin {
+/* ボタンリンクエリア */
+.nav-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ナビボタン */
+.nav-btn {
+  padding: 10px 18px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  color: white;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+/* カラーバリエーション */
+.nav-btn.pink {
+  background-color: #ffafcc;
+}
+
+.nav-btn.blue {
+  background-color: #a2d2ff;
+}
+
+.nav-btn.green {
+  background-color: #c3f0ca;
+  color: #333;
+  font-weight: 700;
+}
+
+/* ホバー時の浮遊アニメーション */
+.nav-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+  filter: brightness(1.05);
+}
+
+/* ふわっと登場アニメーション */
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
