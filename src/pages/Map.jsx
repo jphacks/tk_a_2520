@@ -44,6 +44,8 @@ function PostMap() {
         const data = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+
+          
         }));
         setPosts(data);
       } catch (error) {

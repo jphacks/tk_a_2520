@@ -109,7 +109,7 @@ function PostForm() {
                 imageUrl = await getDownloadURL(storageRef);
             }
 
-            const postData = {
+            /*const postData = {
                 message,
                 tag,
                 imageUrl,
@@ -117,7 +117,16 @@ function PostForm() {
                 // FirestoreのGeoPoint形式で保存するのがおすすめです
                 location: new GeoPoint(location.lat, location.lng),
                 ...(riskLevel && { riskLevel }),
+            };*/
+            const postData = {
+            message,
+            tag,
+            imageUrl,
+            createdAt: serverTimestamp(),
+            location: { lat: location.lat, lng: location.lng }, // ←ここを修正
+            ...(riskLevel && { riskLevel }),
             };
+
 
             await addDoc(collection(db, "posts"), postData);
 
