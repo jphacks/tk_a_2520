@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GoogleMap, Marker, InfoWindow, Circle } from '@react-google-maps/api';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db, doc, updateDoc, increment } from '../firebase/firebase';
+import { collection, getDocs, orderBy, query, doc, updateDoc, increment } from 'firebase/firestore'; // ←ここに追加
+import { db } from '../firebase/firebase';
 
 const containerStyle = {
   width: '100%',
