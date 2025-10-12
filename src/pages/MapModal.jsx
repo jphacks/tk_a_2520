@@ -1,112 +1,116 @@
-import React, { useState, useCallback } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+// src/components/MapModal.js
 
+import React, { useState, useRef, useCallback } from 'react';
+// useJsApiLoader は不要。AutocompleteとStandaloneSearchBoxを追加
+import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
+import './MapModal.css'; // ← モーダル用のCSSをインポート
+
+// --- スタイル定義 ---
 const containerStyle = {
   width: '100%',
-  height: '70vh'
+  height: '400px', // モーダル内の地図の高さ
 };
 
-// 初期表示の中心（例：東京駅）
-const center = {
+// --- 初期中心座標（東京駅） ---
+const initialCenter = {
   lat: 35.681236,
-  lng: 139.767125
+  lng: 139.767125,
 };
 
 function MapModal({ onClose, onSelectLocation }) {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-  });
-
-  // ★ 1. Mapインスタンスを保持するためのstate
+  // --- StateとRefの定義 ---
   const [map, setMap] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [center, setCenter] = useState(initialCenter);
+  const [markerPosition, setMarkerPosition] = useState(null);
+  const autocompleteRef = useRef(null);
 
-  // ★ 2. Mapがロードされた時にインスタンスをstateに保存するコールバック
-  const onLoad = useCallback(function callback(map) {
-    setMap(map);
+  // --- 地図の読み込み完了時に呼ばれる関数 ---
+  const onLoad = useCallback(function callback(mapInstance) {
+    setMap(mapInstance);
   }, []);
 
-  // ★ 3. コンポーネントがアンマウントされた時にインスタンスをクリアするコールバック
-  const onUnmount = useCallback(function callback(_map) {
+  // --- 地図の読み込みが解除された時に呼ばれる関数 ---
+  const onUnmount = useCallback(function callback(_mapInstance) {
     setMap(null);
   }, []);
 
-  const onMapClick = useCallback((event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    setSelected({ lat, lng });
-  }, []);
-
-  // ★ 4. 現在地を取得してピンを立てる関数
-  const findMyLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const currentLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          // selected stateを更新してマーカーを表示
-          setSelected(currentLocation);
-
-          // 地図の中心を現在地に移動させる
-          if (map) {
-            map.panTo(currentLocation);
-            map.setZoom(15); // 適切なズームレベルに設定
-          }
-        },
-        (error) => {
-          // エラーハンドリング
-          console.error("Error getting user location: ", error);
-          alert("現在地の取得に失敗しました。");
-        }
-      );
-    } else {
-      alert("お使いのブラウザは位置情報機能に対応していません。");
+  // --- 地図クリック時の処理 ---
+  const onMapClick = (e) => {
+    const newPosition = {
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    };
+    setMarkerPosition(newPosition);
+  };
+  
+  // --- 場所検索で場所が選択された時の処理 ---
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current !== null) {
+      const place = autocompleteRef.current.getPlace();
+      const newPosition = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      };
+      setCenter(newPosition);
+      setMarkerPosition(newPosition);
+      map.panTo(newPosition); // 地図をその場所に移動
+      map.setZoom(15);
     }
   };
 
+  // --- 「この場所を決定」ボタンの処理 ---
+  const handleConfirmLocation = () => {
+    if (markerPosition) {
+      onSelectLocation(markerPosition.lat, markerPosition.lng);
+    } else {
+      alert('地図をクリックして場所を選択してください。');
+    }
+  };
 
   return (
-    <div className="map-modal-overlay">
-      <div className="map-modal">
-        <h3>地図から位置を選択</h3>
-        {isLoaded ? (
-          <>
-            {/* ★ 5. 現在地取得ボタンを追加 */}
-            <div style={{ marginBottom: '10px' }}>
-              <button className="btn" onClick={findMyLocation}>
-                現在地を取得する
-              </button>
-            </div>
-            <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={center}
-              zoom={13}
-              onClick={onMapClick}
-              onLoad={onLoad} // ★ onLoadコールバックを渡す
-              onUnmount={onUnmount} // ★ onUnmountコールバックを渡す
-            >
-              {selected && <Marker position={selected} />}
-            </GoogleMap>
-          </>
-        ) : (
-          <p>地図を読み込み中...</p>
-        )}
-        <div className="map-modal-buttons">
-          <button className="btn cancel-btn" onClick={onClose}>キャンセル</button>
-          <button
-            className="btn select-btn"
-            disabled={!selected}
-            onClick={() => {
-              if (selected) { // selectedがnullでないことを確認
-                onSelectLocation(selected.lat, selected.lng);
-              }
-            }}
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <h3>地図から場所を選択</h3>
+        <p>検索するか、地図上をクリックしてピンを立ててください。</p>
+
+        {/* 場所検索ボックス */}
+        <Autocomplete
+          onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+          onPlaceChanged={onPlaceChanged}
+        >
+          <input
+            type="text"
+            placeholder="住所や場所を検索..."
+            className="map-search-input"
+          />
+        </Autocomplete>
+
+        {/* Google Map 本体 */}
+        <div className="map-wrapper">
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={center}
+            zoom={12}
+            onLoad={onLoad}
+            onUnmount={onUnmount}
+            onClick={onMapClick}
           >
-            この場所を選択
+            {/* 選択された場所にマーカーを表示 */}
+            {markerPosition && <Marker position={markerPosition} />}
+          </GoogleMap>
+        </div>
+
+        {/* 操作ボタン */}
+        <div className="modal-actions">
+          <button
+            onClick={handleConfirmLocation}
+            className="btn confirm-btn"
+            disabled={!markerPosition} // マーカーがないと押せない
+          >
+            この場所を決定
+          </button>
+          <button onClick={onClose} className="btn close-btn">
+            閉じる
           </button>
         </div>
       </div>
