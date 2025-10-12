@@ -6,7 +6,6 @@ import { db } from '../firebase/firebase';
 const containerStyle = { width: '100%', height: '90vh', position: 'relative' }; // ✅ position: 'relative' を追加
 const defaultCenter = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 
-// ✅ マーカーの色をriskLevelに応じて返す関数を定義
 const getMarkerIcon = (riskLevel) => {
   let color = "#808080"; // デフォルトは灰色
 
@@ -26,8 +25,6 @@ const getMarkerIcon = (riskLevel) => {
     default:
       break;
   }
-
-  // Google Mapsの標準的なピンのSVGパスを使い、色だけ変更する
   return {
     path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
     fillColor: color,
@@ -40,7 +37,7 @@ const getMarkerIcon = (riskLevel) => {
   };
 };
 
-// ✅ 凡例のスタイル
+
 const legendStyle = {
   position: 'absolute',
   bottom: '20px',
@@ -206,9 +203,9 @@ function PostMap() {
       </div>
 
       {/* 地図 */}
-      <div style={containerStyle}> {/* ✅ 地図と凡例を囲むコンテナ */}
+      <div style={containerStyle}> {/* 地図と凡例を囲むコンテナ */}
         <GoogleMap
-          mapContainerStyle={{ width: '100%', height: '100%' }} // ✅ styleを100%に
+          mapContainerStyle={{ width: '100%', height: '100%' }} 
           center={mapCenter}
           zoom={zoom}
         >
@@ -242,7 +239,7 @@ function PostMap() {
                   key={post.id}
                   position={post.location}
                   onClick={() => setSelectedPost(post)}
-                  icon={getMarkerIcon(post.riskLevel)} // ✅ iconプロパティを追加
+                  icon={getMarkerIcon(post.riskLevel)} // iconプロパティを追加
                 />
               )
           )}
@@ -275,7 +272,7 @@ function PostMap() {
           )}
         </GoogleMap>
         
-        {/* ✅ 凡例の表示 */}
+        {/*凡例の表示 */}
         <div style={legendStyle}>
           <div style={{fontWeight: 'bold', marginBottom: '8px'}}>凡例</div>
           <div style={legendItemStyle}><span style={legendColorBoxStyle("#E60012")}></span>危険エリア</div>
