@@ -1,6 +1,4 @@
-/* ===============================
-   ポップでかわいいフォームデザイン
-   =============================== */
+
 
 /* 背景とフォント */
 body {
@@ -17,7 +15,7 @@ body {
   max-width: 640px;
   margin: 40px auto;
   background-color: #ffffff;
-  padding: 28px;
+  padding: 0px;
   border-radius: 20px;
   box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3);
   transition: all 0.3s ease;
