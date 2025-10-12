@@ -221,8 +221,7 @@ function PostForm() {
                         <option value="風景">風景</option>
                         <option value="危険情報">危険情報</option>
                         <option value="グルメ">グルメ</option>
-                        <option value="気づき">気づき</option>
-                        <option value="便利情報">便利情報</option>
+                        <option value="豆知識">豆知識</option>
                     </select>
                 </div>
 
