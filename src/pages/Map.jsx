@@ -282,7 +282,7 @@ function PostMap() {
           <div style={legendItemStyle}><span style={legendColorBoxStyle("#F39800")}></span>スリ多発地域</div>
           <div style={legendItemStyle}><span style={legendColorBoxStyle("#FFF100")}></span>交通事故注意</div>
           <div style={legendItemStyle}><span style={legendColorBoxStyle("#007BFF")}></span>比較的安全</div>
-          <div style={legendItemStyle}><span style={legendColorBoxStyle("#808080")}></span>その他</div>
+          
         </div>
       </div>
     </div>

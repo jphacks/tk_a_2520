@@ -247,7 +247,7 @@ function PostForm() {
                             <option value="危険エリア">危険エリア</option>
                             <option value="スリ多発地域">スリ多発地域</option>
                             <option value="交通事故注意">交通事故注意</option>
-                            <option value="安全ルート">比較的安全</option>
+                            <option value="比較的安全">比較的安全</option>
                         </select>
                     </div>
                 )}
