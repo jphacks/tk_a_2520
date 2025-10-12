@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 // useJsApiLoader は不要。AutocompleteとStandaloneSearchBoxを追加
 import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
-import './MapModal.css'; // ← モーダル用のCSSをインポート
+import './PostForm.css'; // ← モーダル用のCSSをインポート
 
 // --- スタイル定義 ---
 const containerStyle = {
