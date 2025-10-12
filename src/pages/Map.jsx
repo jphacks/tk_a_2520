@@ -126,24 +126,33 @@ function PostMap() {
         center={defaultCenter}
         zoom={13}
       >
-        {filteredPosts.map((post) => (
-          post.location && (
-            <Marker
-              key={post.id}
-              position={{
-                lat: post.location.lat,
-                lng: post.location.lng,
-              }}
-              onClick={() => setSelectedPost(post)}
-              // 📍 変更: 「危険情報」の場合のみiconを指定。それ以外はデフォルトの赤いピン。
-              icon={
-                post.tag === '危険情報' && post.riskLevel
-                  ? getMarkerIcon(post.riskLevel)
-                  : undefined
-              }
-            />
-          )
-        ))}
+        {filteredPosts.map((post) => {
+  if (!post.location) return null;
+
+  // GeoPoint型にも対応するための処理
+  const lat =
+    typeof post.location.lat === "function"
+      ? post.location.lat()
+      : post.location.lat ?? post.location._lat ?? post.location.latitude;
+  const lng =
+    typeof post.location.lng === "function"
+      ? post.location.lng()
+      : post.location.lng ?? post.location._long ?? post.location.longitude;
+
+  if (lat == null || lng == null) return null;
+
+  return (
+    <Marker
+      key={post.id}
+      position={{ lat, lng }}
+      onClick={() => setSelectedPost(post)}
+      icon={{
+        url: getMarkerIcon(post),
+        scaledSize: new window.google.maps.Size(40, 40),
+      }}
+    />
+  );
+})}
 
         {selectedPost && (
           <InfoWindow
