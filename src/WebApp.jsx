@@ -3,7 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Map from './pages/Map';
 import PostDetail from './pages/PostDetail';
 import Form from './pages/Form';
-import './App.css'; // ← ここでCSSを読み込みます
+import './WebApp.css'; // ← ここでCSSを読み込みます
 
 function App() {
   return (
